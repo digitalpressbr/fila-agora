@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1f2a">
+<title>Fila Agora</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icone.svg" type="image/svg+xml">
+<style>
+  :root {
+    --fundo: #0b1f2a; --painel: #12303f; --linha: #1f4558; --texto: #eef6f9; --suave: #9db7c3;
+    --livre: #3ddc97; --medio: #ffc857; --cheio: #ff6b6b; --parado: #6b8794; --marca: #4fc3f7;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--fundo); color: var(--texto);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  body { min-height: 100dvh; padding: max(20px, env(safe-area-inset-top)) 16px 28px; }
+  main { max-width: 520px; margin: 0 auto; }
+  header { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+  header svg { width: 40px; height: 40px; flex: none; }
+  h1 { font-size: 1.5rem; margin: 0; letter-spacing: -0.02em; }
+  .sub { color: var(--suave); margin: 0 0 20px; font-size: 0.95rem; }
+  .dica { background: linear-gradient(135deg, #14506a, #12303f); border: 1px solid var(--linha); border-radius: 16px;
+    padding: 14px 16px; margin-bottom: 16px; font-size: 1rem; }
+  .dica b { color: var(--livre); }
+  .cartao { background: var(--painel); border: 1px solid var(--linha); border-radius: 20px; padding: 18px;
+    margin-bottom: 14px; position: relative; overflow: hidden; }
+  .cartao::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 6px; background: var(--cor, var(--parado)); }
+  .topo { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .nome { font-size: 1.15rem; font-weight: 650; }
+  .selo { font-size: 0.8rem; font-weight: 700; padding: 5px 11px; border-radius: 999px;
+    color: #06202b; background: var(--cor, var(--parado)); white-space: nowrap; }
+  .meio { display: flex; align-items: baseline; gap: 10px; margin: 14px 0 4px; }
+  .numero { font-size: 4.2rem; font-weight: 800; line-height: 1; letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums; color: var(--cor, var(--parado)); }
+  .unid { color: var(--suave); font-size: 1.05rem; }
+  .dados { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+  .dado { background: rgba(255,255,255,0.04); border-radius: 12px; padding: 10px 12px; }
+  .dado span { display: block; color: var(--suave); font-size: 0.78rem; margin-bottom: 2px; }
+  .dado strong { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+  .quando { color: var(--suave); font-size: 0.82rem; margin-top: 12px; display: flex; align-items: center; gap: 7px; }
+  .ponto { width: 8px; height: 8px; border-radius: 50%; background: var(--cor, var(--parado)); flex: none; }
+  .vivo .ponto { animation: pulso 2s ease-in-out infinite; }
+  @keyframes pulso { 50% { opacity: 0.35; } }
+  @media (prefers-reduced-motion: reduce) { .vivo .ponto { animation: none; } }
+  .aviso { color: var(--suave); text-align: center; padding: 40px 10px; }
+  footer { color: var(--parado); font-size: 0.78rem; text-align: center; margin-top: 22px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <svg viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="12" fill="#4fc3f7"/>
+      <path d="M10 30v-5l3-8a3 3 0 0 1 3-2h16a3 3 0 0 1 3 2l3 8v5a2 2 0 0 1-2 2h-1a3 3 0 0 1-6 0H19a3 3 0 0 1-6 0h-1a2 2 0 0 1-2-2zm5-6h18l-2-6H17z" fill="#0b1f2a"/></svg>
+    <h1>Fila Agora</h1>
+  </header>
+  <p class="sub">Veja a fila antes de sair de casa.</p>
+  <div id="dica" class="dica" hidden></div>
+  <div id="lista"><p class="aviso">Carregando…</p></div>
+  <footer>Contagem automática por câmera, sem leitura de placa e sem guardar imagem.<br>Versão de demonstração.</footer>
+</main>
+<script>
+const URL_API = "https://hadbqjgfqfokutltiqra.supabase.co/rest/v1/fa_status?select=*&order=ordem";
+const CHAVE = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhZGJxamdmcWZva3V0bHRpcXJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk0NTQyMTMsImV4cCI6MjEwNTAzMDIxM30.LnEtw-GTzmjioatG0O1VVztxkhVs8szXCgpJFt1ef0w";
+const VELHO = 120;              // segundos sem foto nova: deixa de mostrar o número
+let dados = [], erro = false;
+
+const plural = (n, s, p) => n === 1 ? s : p;
+function minutos(seg) {
+  if (seg == null) return "—";
+  const m = Math.round(seg / 60);
+  if (m < 1) return "menos de 1 min";
+  return m < 60 ? m + " min" : Math.floor(m / 60) + " h " + String(m % 60).padStart(2, "0");
+}
+function faz(seg) {
+  if (seg < 60) return "há " + Math.max(0, Math.round(seg)) + " s";
+  if (seg < 3600) return "há " + Math.round(seg / 60) + " min";
+  return "há mais de " + Math.floor(seg / 3600) + " h";
+}
+function nivel(n) {
+  if (n === 0) return ["Livre", "var(--livre)"];
+  if (n <= 2) return ["Fila pequena", "var(--medio)"];
+  return ["Cheio", "var(--cheio)"];
+}
+function desenhar() {
+  const lista = document.getElementById("lista"), dica = document.getElementById("dica");
+  if (erro && !dados.length) { lista.innerHTML = '<p class="aviso">Sem conexão. Tentando de novo…</p>'; dica.hidden = true; return; }
+  if (!dados.length) { lista.innerHTML = '<p class="aviso">Nenhuma unidade cadastrada.</p>'; dica.hidden = true; return; }
+  const agora = Date.now();
+  const itens = dados.map(u => {
+    const idade = u.atualizado_em ? (agora - new Date(u.atualizado_em).getTime()) / 1000 : Infinity;
+    return { ...u, idade, vivo: idade <= VELHO && u.veiculos != null };
+  });
+  lista.innerHTML = itens.map(u => {
+    const [rotulo, cor] = u.vivo ? nivel(u.veiculos) : ["Sem leitura", "var(--parado)"];
+    const espera = u.vivo && u.permanencia_media_s != null ? minutos(u.veiculos * u.permanencia_media_s) : "—";
+    return `<section class="cartao ${u.vivo ? "vivo" : ""}" style="--cor:${cor}">
+      <div class="topo"><div class="nome">${u.nome}</div><div class="selo">${rotulo}</div></div>
+      <div class="meio"><div class="numero">${u.vivo ? u.veiculos : "–"}</div>
+        <div class="unid">${u.vivo ? plural(u.veiculos, "veículo na fila", "veículos na fila") : "sem leitura no momento"}</div></div>
+      <div class="dados">
+        <div class="dado"><span>Espera estimada</span><strong>${u.vivo && u.veiculos === 0 ? "sem espera" : espera}</strong></div>
+        <div class="dado"><span>Tempo médio por veículo</span><strong>${minutos(u.permanencia_media_s)}</strong></div>
+      </div>
+      <div class="quando"><i class="ponto"></i>${u.atualizado_em ? "Atualizado " + faz(u.idade) : "Aguardando a primeira leitura"}
+        ${u.paradas_hoje ? " · " + u.paradas_hoje + " " + plural(u.paradas_hoje, "atendimento hoje", "atendimentos hoje") : ""}</div>
+    </section>`;
+  }).join("");
+  const vivos = itens.filter(u => u.vivo);
+  if (vivos.length > 1) {
+    const melhor = vivos.reduce((a, b) => b.veiculos < a.veiculos ? b : a);
+    const empate = vivos.every(u => u.veiculos === melhor.veiculos);
+    dica.innerHTML = empate ? "As unidades estão iguais agora." : `Melhor opção agora: <b>${melhor.nome}</b>.`;
+    dica.hidden = false;
+  } else dica.hidden = true;
+}
+async function buscar() {
+  try {
+    const r = await fetch(URL_API, { headers: { apikey: CHAVE, Authorization: "Bearer " + CHAVE }, cache: "no-store" });
+    if (!r.ok) throw new Error(r.status);
+    dados = await r.json(); erro = false;
+  } catch (e) { erro = true; }
+  desenhar();
+}
+buscar();
+setInterval(buscar, 10000);
+setInterval(desenhar, 1000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) buscar(); });
+</script>
+</body>
+</html>
