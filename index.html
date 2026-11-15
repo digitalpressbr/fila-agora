@@ -292,10 +292,11 @@
       </div>
     </div>
     <div class="passos" id="passos-ios" hidden>
-      <div class="recado" id="ios-aviso" hidden>No iPhone a instalação é pelo <b>Safari</b>. Abra este endereço no Safari e siga os passos.</div>
+      <div class="recado" id="ios-aviso" hidden>No iPhone não existe arquivo para baixar: a instalação é pelo <b>Safari</b>. Abra este endereço no Safari e siga os passos.</div>
       <div class="passo"><i>1</i><span>Toque em <b>Compartilhar</b>, na barra do Safari.</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M8 6.5l4-4 4 4M7 10H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-1"/></svg></div>
       <div class="passo"><i>2</i><span>Role a lista e toque em <b>Adicionar à Tela de Início</b>.</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8v8M8 12h8"/></svg></div>
       <div class="passo"><i>3</i><span>Toque em <b>Adicionar</b>, no canto de cima. Pronto.</span></div>
+      <div class="recado" id="ios-depois">Depois de instalar, abra pelo <b>ícone novo</b> e toque em <b>Ativar alertas</b>. No iPhone o aviso chega como notificação, com o som do aparelho.</div>
       <div class="seta-ios" id="seta-ios" hidden>O botão Compartilhar fica aqui embaixo<svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 5v22M8 19l9 9 9-9"/></svg></div>
     </div>
   </div>
@@ -607,6 +608,9 @@ function aplicarNoCelular() {
 }
 document.getElementById("al-ligar").addEventListener("click", async () => {
   lerFormulario();
+  if (ehIOS && !jaInstalado() && !pref.ligado) {
+    abrirFolha(); toque("No iPhone, instale primeiro na Tela de Início. Depois ative os alertas pelo ícone novo."); return;
+  }
   if (!pref.ligado && !pref.unidades.length) { toque("Marque pelo menos uma unidade."); return; }
   buzina.play().then(() => { buzina.pause(); buzina.currentTime = 0; }).catch(() => {});   // libera o som neste toque
   pref.ligado = !pref.ligado; guardar(); pintarAlertas();
