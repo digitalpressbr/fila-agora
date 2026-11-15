@@ -120,6 +120,10 @@
   .botao:active { transform: scale(0.98); }
   .botao:focus-visible, nav button:focus-visible { outline: 3px solid var(--ceu); outline-offset: 2px; }
   .info { background: var(--anil); color: var(--branco); border-radius: 20px; padding: 16px 18px; margin-top: 18px; font-size: 0.86rem; font-weight: 600; line-height: 1.7; }
+  .assinatura { display: flex; align-items: center; justify-content: center; gap: 9px; margin: 6px 0 4px; color: var(--suave); font-size: 0.66rem; font-weight: 600; line-height: 1.25; text-align: left; }
+  .assinatura img { width: 34px; height: 34px; border-radius: 50%; flex: none; }
+  .assinatura b { display: block; font-size: 0.78rem; font-weight: 800; color: var(--texto); }
+  .versao { text-align: center; color: var(--parado); font-size: 0.64rem; font-weight: 600; margin: 0 0 10px; letter-spacing: 0.02em; }
   footer { color: var(--parado); font-size: 0.72rem; font-weight: 600; text-align: center; margin: 22px 10px 8px; line-height: 1.6; }
   footer b { color: var(--anil); }
 
@@ -282,7 +286,9 @@
       <div id="produtos"></div>
     </section>
 
-    <footer>Empresa e dados de locação e loja são <b>exemplos</b>. A fila é leitura real de câmera.<br>Feito com <b>Fila Agora</b>.</footer>
+    <footer>Empresa e dados de locação e loja são <b>exemplos</b>. A fila é leitura real de câmera.</footer>
+    <div class="assinatura" id="assinatura"><img src="digitalpressbr.png" alt="" width="34" height="34"><span>Desenvolvido por<b>Digital Press BR</b></span></div>
+    <p class="versao" id="versao"></p>
   </main>
 </div>
 
@@ -701,6 +707,11 @@ if (navigator.serviceWorker) navigator.serviceWorker.addEventListener("message",
   if (e.data && e.data.tipo === "fila-aviso") mostrarChamada(e.data.titulo, e.data.corpo);
 });
 if (nativo) { try { pref.ligado = !!JSON.parse(nativo.estado()).ligado; guardar(); } catch (x) {} }
+const VERSAO_WEB = "1.3";
+(() => {
+  let app = ""; try { if (nativo && nativo.versao) app = nativo.versao(); } catch (x) {}
+  document.getElementById("versao").textContent = "Fila Agora · " + (nativo ? "aplicativo Android " + (app || "1.2 ou anterior") + " · " : "") + "tela " + VERSAO_WEB;
+})();
 pintarAlertas();
 conferirPermissoes();
 
