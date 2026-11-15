@@ -211,7 +211,7 @@
     <section class="tela ativa" id="t-fila">
       <button class="instalar" id="instalar" hidden>
         <span class="bola"><svg viewBox="0 0 28 28" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4v14M7 12l7 7 7-7M5 24h18"/></svg></span>
-        <span class="txt"><b>Instale o aplicativo</b>Fica na tela inicial e avisa quando tiver vaga.</span>
+        <span class="txt"><b>Instale o app</b>Avisa quando tiver vaga.</span>
         <span class="pill">Instalar</span>
       </button>
       <div id="dica" class="dica" hidden></div>
@@ -391,7 +391,7 @@ function desenhar() {
       return `<article class="cartao ${u.vivo ? "vivo" : ""}" style="--cor:${cor}">
         <div class="linha1"><div><div class="nome">${u.nome}</div><div class="ender">${u.ender}</div></div><div class="selo">${rotulo}</div></div>
         ${pista}
-        <div class="placar"><div class="lav"><b>${u.vivo ? lavando : "–"}</b>lavando agora</div><div><b>${u.vivo ? aguardando : "–"}</b>aguardando na fila</div></div>
+        <div class="placar"><div class="lav"><b>${u.vivo ? lavando : "–"}</b>lavando agora</div><div><b>${u.vivo ? aguardando : "–"}</b>aguardando</div></div>
         <div class="dados">
           <div class="dado"><span>Espera estimada</span><strong>${espera}</strong></div>
           <div class="dado"><span>Tempo médio por veículo</span><strong>${minutos(u.permanencia_media_s)}</strong></div>
