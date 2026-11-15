@@ -681,6 +681,7 @@ if (nativo) {
 let ultimosItens = [], relogioJa;
 // Ativou com a unidade já no ponto pedido: avisa em 5 segundos, sem esperar a fila subir e cair de novo.
 function avisarJa() {
+  if (nativo) return;                 // no aplicativo Android quem avisa é o serviço do celular
   clearTimeout(relogioJa);
   relogioJa = setTimeout(() => {
     if (!pref.ligado || document.visibilityState !== "visible") return;
@@ -693,7 +694,7 @@ function avisarJa() {
 }
 function avaliarAlertas(itens) {
   ultimosItens = itens;
-  if (!pref.ligado) return;
+  if (!pref.ligado || nativo) return;
   itens.forEach(u => {
     if (!pref.unidades.includes(u.unidade)) return;
     const atende = u.vivo && u.veiculos <= pref.limite, antes = estadoAlerta[u.unidade];
