@@ -176,6 +176,19 @@
   .seta-ios { text-align: center; color: var(--anil); font-weight: 800; font-size: 0.86rem; margin-top: 6px; }
   .seta-ios svg { display: block; width: 34px; height: 34px; margin: 4px auto 0; animation: desce 1s ease-in-out infinite; }
   @media (prefers-reduced-motion: reduce) { .instalar .bola, .instalar .bola svg, #and-direto, .seta-ios svg { animation: none; } }
+  .permissoes { background: #fff8e6; border: 1px solid #f1d58a; border-radius: 20px; padding: 14px 14px 6px; margin: 14px 0 0; }
+  .permissoes[hidden] { display: none; }
+  .permissoes h3 { margin: 0 0 3px; font-size: 0.98rem; font-weight: 800; color: #6b4700; }
+  .permissoes p { margin: 0 0 10px; font-size: 0.78rem; font-weight: 600; color: #8a6410; line-height: 1.35; }
+  .perm-linha { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid #f1e2b3; font-size: 0.88rem; font-weight: 700; color: var(--texto); }
+  .perm-linha span { flex: 1; min-width: 0; }
+  .perm-linha small { display: block; font-size: 0.72rem; font-weight: 600; color: var(--suave); }
+  .perm-linha button { flex: none; border: 0; border-radius: 12px; padding: 11px 14px; min-height: 44px; font: inherit; font-weight: 800; font-size: 0.82rem; background: var(--anil); color: #fff; cursor: pointer; }
+  .perm-linha .feito { flex: none; font-size: 0.78rem; font-weight: 800; color: #0a7a4c; background: #dff5ea; border-radius: 999px; padding: 6px 11px; }
+  .alertas .botao.som { display: flex; align-items: center; justify-content: center; gap: 9px; margin-top: 10px; }
+  .alertas .botao.som svg { width: 22px; height: 22px; }
+  .alertas .mini { display: block; width: 100%; border: 0; background: none; font: inherit; font-size: 0.78rem; font-weight: 700; color: var(--anil); text-decoration: underline; padding: 12px 0 2px; cursor: pointer; }
+  .alertas .mini[hidden] { display: none; }
   .alertas { background: var(--branco); border: 1px solid var(--linha); border-radius: 22px; padding: 18px; margin-bottom: 14px; box-shadow: 0 6px 18px rgba(35,40,143,0.07); }
   .alertas h3 { margin: 0 0 4px; font-size: 1.02rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
   .alertas h3 svg { width: 22px; height: 22px; color: var(--ceu); }
@@ -214,6 +227,11 @@
 
   <main>
     <section class="tela ativa" id="t-fila">
+      <div class="permissoes" id="permissoes" hidden>
+        <h3>Libere os avisos</h3>
+        <p>Sem estas permissões a buzina não toca com o aplicativo fechado.</p>
+        <div id="perm-lista"></div>
+      </div>
       <button class="instalar" id="instalar" hidden>
         <span class="bola"><svg viewBox="0 0 28 28" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4v14M7 12l7 7 7-7M5 24h18"/></svg></span>
         <span class="txt"><b>Instale o app</b>Avisa quando tiver vaga.</span>
@@ -232,7 +250,9 @@
           <option value="1">Avisar com até 1 veículo na fila</option>
           <option value="2">Avisar com fila pequena (até 2 veículos)</option>
         </select>
-        <div class="dupla"><button class="botao" id="al-ligar" aria-pressed="false">Ativar alertas</button><button class="botao leve" id="al-testar">Testar</button></div>
+        <button class="botao" id="al-ligar" aria-pressed="false">Ativar alertas</button>
+        <button class="botao leve som" id="al-testar"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 10v4h4l5 4V6L7 10zm12.5 2a4.500 4.500 0 0 0-2.500-4v8a4.500 4.500 0 0 0 2.500-4zM13 3.200v2.100a7 7 0 0 1 0 13.400v2.100a9 9 0 0 0 0-17.600z"/></svg>Testar buzina</button>
+        <button class="mini" id="al-fechado" hidden>Testar o aviso com o aplicativo fechado</button>
       </div>
       <div class="simular"><span id="sim-texto">Quer ver com movimento? Rode uma simulação.</span><button id="sim" aria-pressed="false">Simular movimento</button></div>
       <div class="info">Todos os dias, das 8h às 18h30.<br>A contagem é feita por câmera, sem ler placa e sem guardar imagem.</div>
@@ -559,11 +579,11 @@ function tocarBuzina() {
   try { buzina.currentTime = 0; buzina.play().catch(() => {}); } catch (e) {}
   if (navigator.vibrate) navigator.vibrate([350, 120, 350, 120, 700]);
 }
-function mostrarChamada(titulo, corpo) {
+function mostrarChamada(titulo, corpo, semSom) {
   document.getElementById("ch-titulo").textContent = titulo;
   document.getElementById("ch-corpo").textContent = corpo;
   document.getElementById("chamada").hidden = false;
-  tocarBuzina();
+  if (!semSom) tocarBuzina();
 }
 document.getElementById("ch-ok").addEventListener("click", () => { document.getElementById("chamada").hidden = true; buzina.pause(); });
 
@@ -589,17 +609,29 @@ async function desinscreverPush() {
     if (ins) { await rpc("fa_desinscrever", { p_endpoint: ins.endpoint }); await ins.unsubscribe(); }
   } catch (e) {}
 }
-const PERMISSOES = [["notificacoes", "Libere as notificações para a buzina tocar."],
-  ["telaCheia", "Libere o aviso em tela cheia."], ["sobrepor", "Libere aparecer por cima de outros aplicativos."]];
+const PERMISSOES = [["notificacoes", "Notificações", "Para o aviso aparecer e a buzina tocar."],
+  ["telaCheia", "Aviso em tela cheia", "Para abrir a chamada com a tela bloqueada."],
+  ["sobrepor", "Aparecer sobre outros aplicativos", "Para abrir por cima do que estiver na tela."]];
 function conferirPermissoes() {
-  const caixa = document.getElementById("al-perm");
-  if (!nativo || !pref.ligado) { caixa.hidden = true; return; }
-  let e = {}; try { e = JSON.parse(nativo.estado()); } catch (x) {}
-  const falta = PERMISSOES.find(([k]) => e[k] === false);
-  caixa.hidden = !falta;
-  if (falta) { document.getElementById("al-perm-txt").textContent = falta[1]; document.getElementById("al-perm-btn").onclick = () => nativo.pedir(falta[0]); }
+  const painel = document.getElementById("permissoes"), lista = document.getElementById("perm-lista");
+  document.getElementById("al-perm").hidden = true;
+  let linhas = [];
+  if (nativo) {
+    let e = {}; try { e = JSON.parse(nativo.estado()); } catch (x) {}
+    linhas = PERMISSOES.map(([k, nome, para]) => [k, nome, para, e[k] !== false]);
+  } else if ("Notification" in window && (!ehIOS || jaInstalado())) {
+    linhas = [["web", "Notificações", Notification.permission === "denied" ? "Bloqueadas neste navegador. Libere nas configurações do site." : "Para o aviso chegar com o aplicativo fechado.", Notification.permission === "granted"]];
+  }
+  const falta = linhas.some(l => !l[3]);
+  painel.hidden = !falta;
+  if (!falta) return;
+  lista.innerHTML = linhas.map(([k, nome, para, ok]) => `<div class="perm-linha"><span>${nome}<small>${para}</small></span>${ok ? '<b class="feito">Liberada</b>' : `<button data-perm="${k}">Liberar</button>`}</div>`).join("");
+  lista.querySelectorAll("[data-perm]").forEach(b => b.addEventListener("click", async () => {
+    if (nativo) nativo.pedir(b.dataset.perm); else { try { await Notification.requestPermission(); } catch (x) {} conferirPermissoes(); }
+  }));
 }
 window.addEventListener("fila-nativo-voltou", conferirPermissoes);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) conferirPermissoes(); });
 function aplicarNoCelular() {
   if (!nativo) return false;
   if (pref.ligado && pref.unidades.length) nativo.ligar(pref.unidades.join(","), pref.limite); else nativo.desligar();
@@ -630,9 +662,14 @@ document.getElementById("al-ligar").addEventListener("click", async () => {
     if (pref.ligado && !aplicarNoCelular()) inscreverPush().catch(() => {}); });
 });
 document.getElementById("al-testar").addEventListener("click", () => {
-  if (nativo) { nativo.testar(); toque("Saia do aplicativo agora: em 4 segundos a chamada aparece com a buzina."); return; }
+  // Só o som e a tela do aviso, na hora, com os alertas ligados ou não.
+  if (nativo && nativo.buzinar) { nativo.buzinar(); mostrarChamada("Vaga na Unidade Centro!", "Isto é um teste. É assim que o aviso aparece e toca.", true); return; }
   mostrarChamada("Vaga na Unidade Centro!", "Isto é um teste. É assim que o aviso aparece e toca.");
 });
+if (nativo) {
+  const b = document.getElementById("al-fechado"); b.hidden = false;
+  b.addEventListener("click", () => { nativo.testar(); toque("Saia do aplicativo agora: em 4 segundos a chamada aparece com a buzina."); });
+}
 
 function avaliarAlertas(itens) {
   if (!pref.ligado) return;
