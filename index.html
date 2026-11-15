@@ -102,7 +102,7 @@
   .servico { border-radius: 20px; padding: 16px 14px 14px; color: var(--branco); min-height: 150px; position: relative; overflow: hidden;
     background: linear-gradient(160deg, var(--anil), var(--anil-escuro)); display: flex; flex-direction: column; justify-content: flex-end; }
   .servico:nth-child(even) { background: linear-gradient(160deg, #2a8fd0, var(--anil)); }
-  .servico svg { position: absolute; right: -8px; top: -6px; width: 92px; height: 92px; opacity: 0.9; }
+  .servico svg { position: absolute; right: -10px; top: -10px; width: 78px; height: 78px; opacity: 0.5; }
   .servico b { font-size: 1.02rem; font-weight: 800; line-height: 1.15; position: relative; }
   .servico small { font-size: 0.74rem; font-weight: 500; opacity: 0.88; margin-top: 5px; line-height: 1.35; position: relative; }
 
@@ -226,7 +226,7 @@
           <option value="1">Avisar com até 1 veículo na fila</option>
           <option value="2">Avisar com fila pequena (até 2 veículos)</option>
         </select>
-        <div class="dupla"><button class="botao" id="al-ligar" aria-pressed="false">Ativar alertas</button><button class="botao leve" id="al-testar">Testar buzina</button></div>
+        <div class="dupla"><button class="botao" id="al-ligar" aria-pressed="false">Ativar alertas</button><button class="botao leve" id="al-testar">Testar</button></div>
       </div>
       <div class="simular"><span id="sim-texto">Quer ver com movimento? Rode uma simulação.</span><button id="sim" aria-pressed="false">Simular movimento</button></div>
       <div class="info">Todos os dias, das 8h às 18h30.<br>A contagem é feita por câmera, sem ler placa e sem guardar imagem.</div>
@@ -302,7 +302,7 @@ const VELHO = 120;              // segundos sem foto nova: deixa de mostrar o n�
 // Nome e endereço de vitrine de cada câmera (empresa de exemplo).
 const VITRINE = { "unidade-1": ["Unidade Centro", "Av. Principal, 260"], "unidade-2": ["Unidade Avenida", "Av. das Palmeiras, 635"] };
 const CARRETAS = [
-  ["Carretinha aberta 2,0 m", "Para mudança pequena, móveis e material de obra.", 2, "aberta"],
+  ["Carretinha aberta", "Para mudança pequena, móveis e material de obra.", 2, "aberta"],
   ["Carretinha baú", "Carga protegida de chuva e poeira.", 1, "bau"],
   ["Reboque para moto", "Leva até 2 motos, com rampa.", 0, "moto"],
 ];
@@ -394,7 +394,7 @@ function desenhar() {
         <div class="placar"><div class="lav"><b>${u.vivo ? lavando : "–"}</b>lavando agora</div><div><b>${u.vivo ? aguardando : "–"}</b>aguardando</div></div>
         <div class="dados">
           <div class="dado"><span>Espera estimada</span><strong>${espera}</strong></div>
-          <div class="dado"><span>Tempo médio por veículo</span><strong>${minutos(u.permanencia_media_s)}</strong></div>
+          <div class="dado"><span>Tempo por veículo</span><strong>${minutos(u.permanencia_media_s)}</strong></div>
         </div>
         <div class="quando"><i class="ponto"></i><span data-quando="${u.unidade}"></span></div>
       </article>`;
