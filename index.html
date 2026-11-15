@@ -147,6 +147,14 @@
   .registros th { text-align: left; font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--suave); padding: 6px 4px; border-bottom: 1px solid var(--linha); }
   .registros td { padding: 8px 4px; border-bottom: 1px solid var(--fundo); font-weight: 600; }
   .registros .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .hor-u { border-top: 1px solid var(--linha); padding: 14px 0 6px; }
+  .hor-n { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-weight: 800; font-size: 0.92rem; }
+  .hor-s { font-size: 0.66rem; font-weight: 800; padding: 4px 10px; border-radius: 999px; background: var(--fundo); color: var(--parado); white-space: nowrap; }
+  .hor-s.aberta { background: var(--livre); color: #fff; }
+  .hor-l { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  .hor-l .campo { margin-bottom: 8px; }
+  .hor-f { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 0.86rem; font-weight: 700; color: var(--texto); cursor: pointer; }
+  .hor-f input { width: 22px; height: 22px; flex: none; accent-color: var(--anil); }
   .dono-topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 18px 4px 4px; }
   .dono-topo h2 { margin: 0; } .dono-topo button { border: 0; border-radius: 12px; padding: 10px 14px; min-height: 44px; font: inherit; font-weight: 800; font-size: 0.8rem; background: var(--ceu-claro); color: var(--anil); cursor: pointer; }
   html { overscroll-behavior-y: contain; }
@@ -300,7 +308,7 @@
         <button class="mini" id="al-fechado" hidden>Testar o aviso com o aplicativo fechado</button>
       </div>
       <div class="simular"><span id="sim-texto">Quer ver com movimento? Rode uma simulação.</span><button id="sim" aria-pressed="false">Simular movimento</button></div>
-      <div class="info">Todos os dias, das 8h às 18h30.<br>A contagem é feita por câmera, sem ler placa e sem guardar imagem.</div>
+      <div class="info"><span id="info-horario">Todos os dias, das 08:00 às 18:30.</span><br>A contagem é feita por câmera, sem ler placa e sem guardar imagem.</div>
     </section>
 
     <section class="tela" id="t-servicos">
@@ -336,6 +344,7 @@
         <p class="erro" id="dono-erro"></p>
         <button class="botao" id="dono-entrar" style="margin-top:0">Entrar</button>
       </div>
+      <div id="dono-horario"></div>
       <div id="dono-painel"></div>
     </section>
 
@@ -389,6 +398,22 @@
 <script>
 const URL_API = "https://hadbqjgfqfokutltiqra.supabase.co/rest/v1/fa_status?select=*&order=ordem";
 const CHAVE = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhZGJxamdmcWZva3V0bHRpcXJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk0NTQyMTMsImV4cCI6MjEwNTAzMDIxM30.LnEtw-GTzmjioatG0O1VVztxkhVs8szXCgpJFt1ef0w";
+const URL_HORARIO = "https://hadbqjgfqfokutltiqra.supabase.co/rest/v1/fa_horario?select=*";
+let horarios = {};
+// Data e hora de Brasília, seja qual for o fuso do celular.
+function agoraBrasilia() {
+  const p = {}; new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
+    .formatToParts(new Date()).forEach(x => { p[x.type] = x.value; });
+  return { dia: `${p.year}-${p.month}-${p.day}`, hm: `${p.hour}:${p.minute}` };
+}
+function situacao(h) {
+  if (!h) return { aberta: true, expediente: "" };
+  const { dia, hm } = agoraBrasilia(), abre = h.abre.slice(0, 5), fecha = h.fecha.slice(0, 5), expediente = abre + " às " + fecha;
+  if (h.fechada_em === dia) return { aberta: false, expediente, texto: "Fechada hoje. Abre amanhã às " + abre + "." };
+  if (hm < abre) return { aberta: false, expediente, texto: "Fechada agora. Abre às " + abre + "." };
+  if (hm >= fecha) return { aberta: false, expediente, texto: "Fechada agora. Abre amanhã às " + abre + "." };
+  return { aberta: true, expediente };
+}
 const VELHO = 120;              // segundos sem foto nova: deixa de mostrar o número
 // Nome e endereço de vitrine de cada câmera (empresa de exemplo).
 const VITRINE = { "unidade-1": ["Unidade Centro", "Av. Principal, 260"], "unidade-2": ["Unidade Avenida", "Av. das Palmeiras, 635"] };
@@ -457,6 +482,7 @@ function filaDe(u) {
   return f.slice(0, u.veiculos || 0);
 }
 function montarPista(u, antes) {
+  if (u.fechada) return `<div class="pista">${TUNEL}<div class="vazio">${u.aviso}</div></div>`;
   if (!u.vivo) return `<div class="pista">${TUNEL}<div class="vazio">Sem leitura da câmera no momento.</div></div>`;
   const fila = filaDe(u);
   if (!fila.length) return `<div class="pista">${TUNEL}<div class="vazio">Pista livre. Pode vir!</div></div>`;
@@ -477,19 +503,20 @@ function desenhar() {
   const itens = dados.map(u => {
     const idade = u.atualizado_em ? (agora - new Date(u.atualizado_em).getTime()) / 1000 : Infinity;
     const [nome, ender] = VITRINE[u.unidade] || [u.nome, ""];
-    return { ...u, nome, ender, idade, vivo: idade <= VELHO && u.veiculos != null };
+    const sit = simulando ? { aberta: true, expediente: "" } : situacao(horarios[u.unidade]);
+    return { ...u, nome, ender, idade, fechada: !sit.aberta, aviso: sit.texto, expediente: sit.expediente, vivo: sit.aberta && idade <= VELHO && u.veiculos != null };
   });
-  const assinatura = JSON.stringify(itens.map(u => [u.unidade, u.vivo, u.veiculos, u.fila, u.permanencia_media_s, u.paradas_hoje]));
+  const assinatura = JSON.stringify(itens.map(u => [u.unidade, u.vivo, u.veiculos, u.fila, u.permanencia_media_s, u.paradas_hoje, u.fechada, u.aviso, u.expediente]));
   if (assinatura !== ultimaAssinatura) {
     ultimaAssinatura = assinatura;
     lista.innerHTML = itens.map(u => {
-      const [rotulo, cor] = u.vivo ? nivel(u.veiculos) : ["Sem leitura", "var(--parado)"];
+      const [rotulo, cor] = u.fechada ? ["Fechada", "var(--parado)"] : u.vivo ? nivel(u.veiculos) : ["Sem leitura", "var(--parado)"];
       const lavando = u.vivo && u.veiculos > 0 ? 1 : 0, aguardando = u.vivo ? Math.max(0, u.veiculos - 1) : 0;
       const espera = !u.vivo ? "—" : u.veiculos === 0 ? "sem espera" : u.permanencia_media_s != null ? minutos(u.veiculos * u.permanencia_media_s) : "—";
       const pista = montarPista(u, filasAntes[u.unidade] ?? 99);
       filasAntes[u.unidade] = u.vivo ? (u.veiculos || 0) : 0;
       return `<article class="cartao ${u.vivo ? "vivo" : ""}" style="--cor:${cor}">
-        <div class="linha1"><div><div class="nome">${u.nome}</div><div class="ender">${u.ender}</div></div><div class="selo">${rotulo}</div></div>
+        <div class="linha1"><div><div class="nome">${u.nome}</div><div class="ender">${u.ender}</div>${u.expediente ? `<div class="ender">Todos os dias, das ${u.expediente}</div>` : ""}</div><div class="selo">${rotulo}</div></div>
         ${pista}
         ${u.vivo && u.veiculos ? `<div class="tipos">${resumoTipos(filaDe(u))}</div>` : ""}
         <div class="placar"><div class="lav"><b>${u.vivo ? lavando : "–"}</b>lavando agora</div><div><b>${u.vivo ? aguardando : "–"}</b>aguardando</div></div>
@@ -509,17 +536,21 @@ function desenhar() {
     } else dica.hidden = true;
   }
   avaliarAlertas(itens);
+  const exp = [...new Set(itens.map(u => u.expediente).filter(Boolean))], ih = document.getElementById("info-horario");
+  if (ih && exp.length) ih.textContent = exp.length === 1 ? "Todos os dias, das " + exp[0] + "." : itens.filter(u => u.expediente).map(u => u.nome + ": das " + u.expediente).join(". ") + ".";
   itens.forEach(u => {
     const el = lista.querySelector(`[data-quando="${u.unidade}"]`);
-    if (el) el.textContent = (simulando ? "Simulação" : u.atualizado_em ? "Atualizado " + faz(u.idade) : "Aguardando a primeira leitura")
+    if (el) el.textContent = (simulando ? "Simulação" : u.fechada ? "Fora do horário de atendimento" : u.atualizado_em ? "Atualizado " + faz(u.idade) : "Aguardando a primeira leitura")
 ;
   });
 }
 async function buscar() {
   if (simulando) return;
   try {
-    const r = await fetch(URL_API, { headers: { apikey: CHAVE, Authorization: "Bearer " + CHAVE }, cache: "no-store" });
+    const cab = { headers: { apikey: CHAVE, Authorization: "Bearer " + CHAVE }, cache: "no-store" };
+    const [r, rh] = await Promise.all([fetch(URL_API, cab), fetch(URL_HORARIO, cab).catch(() => null)]);
     if (!r.ok) throw new Error(r.status);
+    if (rh && rh.ok) { const h = await rh.json(); if (Array.isArray(h)) horarios = Object.fromEntries(h.map(x => [x.unidade, x])); }
     const novo = await r.json();
     if (!simulando) { dados = novo; erro = false; carregou = true; }
   } catch (e) { erro = true; }
@@ -773,7 +804,7 @@ if (navigator.serviceWorker) navigator.serviceWorker.addEventListener("message",
   if (e.data && e.data.tipo === "fila-aviso") mostrarChamada(e.data.titulo, e.data.corpo);
 });
 if (nativo) { try { pref.ligado = !!JSON.parse(nativo.estado()).ligado; guardar(); } catch (x) {} }
-const VERSAO_WEB = "1.9";
+const VERSAO_WEB = "2.0";
 (() => {
   let app = ""; try { if (nativo && nativo.versao) app = nativo.versao(); } catch (x) {}
   document.getElementById("versao").textContent = "Fila Agora · " + (nativo ? "aplicativo Android " + (app || "1.2 ou anterior") + " · " : "") + "tela " + VERSAO_WEB;
@@ -791,7 +822,7 @@ function abrirDono() {
   if (senhaDono) carregarDono(); else prepararEntrada();
 }
 async function prepararEntrada() {
-  $d("dono-painel").innerHTML = ""; $d("dono-entrada").hidden = false; $d("dono-sair").hidden = true; $d("dono-erro").textContent = "";
+  $d("dono-painel").innerHTML = ""; $d("dono-horario").innerHTML = ""; $d("dono-entrada").hidden = false; $d("dono-sair").hidden = true; $d("dono-erro").textContent = "";
   let e = {}; try { e = await (await rpc("fa_admin_estado", {})).json(); } catch (x) {}
   const criar = (!!conviteDono || e.primeiro_livre) && e.convite_aberto && !e.tem_senha;
   $d("dono-c2").hidden = !criar;
@@ -821,6 +852,37 @@ const barras = (valores, rotulos) => {
   return `<div class="barras">${valores.map(n => `<div class="${n ? "" : "zero"}" style="height:${n ? Math.max(8, n / max * 100) : 2}%">${n ? `<i>${n}</i>` : ""}</div>`).join("")}</div>
     <div class="eixo">${rotulos.map(r => `<span>${r}</span>`).join("")}</div>`;
 };
+// Horário de funcionamento: a câmera só é lida dentro dele. Vale para todos os dias; "fechar hoje" reabre sozinho amanhã.
+async function pintarHorario(lista) {
+  if (!lista) {
+    try { const r = await fetch(URL_HORARIO, { headers: { apikey: CHAVE, Authorization: "Bearer " + CHAVE }, cache: "no-store" }); lista = await r.json(); } catch (x) { lista = null; }
+  }
+  if (!Array.isArray(lista)) { $d("dono-horario").innerHTML = ""; return; }
+  horarios = Object.fromEntries(lista.map(x => [x.unidade, x]));
+  const hoje = agoraBrasilia().dia;
+  lista.sort((a, b) => a.unidade.localeCompare(b.unidade));
+  $d("dono-horario").innerHTML = `<div class="cartao"><div class="nome">Horário de funcionamento</div>
+    <p class="nota" style="margin:6px 0 12px">A câmera só é lida dentro deste horário, todos os dias. Fora dele a unidade aparece como fechada para o cliente.</p>` +
+    lista.map(h => { const sit = situacao(h); return `<div class="hor-u" data-u="${h.unidade}">
+      <div class="hor-n"><span>${(VITRINE[h.unidade] || [h.unidade])[0]}</span><span class="hor-s ${sit.aberta ? "aberta" : ""}">${sit.aberta ? "Aberta agora" : "Fechada agora"}</span></div>
+      <div class="hor-l"><label class="campo">Abre<input type="time" class="h-abre" value="${h.abre.slice(0, 5)}"></label>
+        <label class="campo">Fecha<input type="time" class="h-fecha" value="${h.fecha.slice(0, 5)}"></label></div>
+      <label class="hor-f"><input type="checkbox" class="h-fechada" ${h.fechada_em === hoje ? "checked" : ""}>Fechar esta unidade hoje</label></div>`; }).join("") +
+    `<p class="erro" id="hor-erro" style="margin-top:8px"></p><button class="botao" id="hor-salvar" style="margin-top:0">Salvar horário</button></div>`;
+  $d("hor-salvar").addEventListener("click", async () => {
+    const erro = $d("hor-erro"), botao = $d("hor-salvar"); erro.textContent = "";
+    const itens = [...document.querySelectorAll(".hor-u")].map(el => ({ unidade: el.dataset.u, abre: el.querySelector(".h-abre").value,
+      fecha: el.querySelector(".h-fecha").value, fechada_hoje: el.querySelector(".h-fechada").checked }));
+    if (itens.some(i => !i.abre || !i.fecha)) { erro.textContent = "Preencha a hora de abrir e a de fechar."; return; }
+    if (itens.some(i => i.abre >= i.fecha)) { erro.textContent = "A hora de fechar precisa ser depois da hora de abrir."; return; }
+    botao.disabled = true; botao.textContent = "Salvando…";
+    const r = await rpc("fa_horario_salvar", { p_senha: senhaDono, p_itens: itens }).catch(() => null);
+    if (!r || !r.ok) { botao.disabled = false; botao.textContent = "Salvar horário"; erro.textContent = r ? "Não foi possível salvar. Saia e entre de novo com a senha." : "Sem conexão. Tente de novo."; return; }
+    await pintarHorario(await r.json());
+    toque("Horário salvo. Vale a partir de agora.");
+    ultimaAssinatura = ""; desenhar();
+  });
+}
 async function carregarDono() {
   const r = await rpc("fa_painel", { p_senha: senhaDono }).catch(() => null);
   if (!r || !r.ok) { senhaDono = ""; await prepararEntrada(); $d("dono-erro").textContent = r ? "Senha incorreta." : "Sem conexão. Tente de novo."; return; }
@@ -829,6 +891,7 @@ async function carregarDono() {
   pintarModo();
   const d = await r.json();
   $d("dono-entrada").hidden = true; $d("dono-sair").hidden = false;
+  if (!$d("dono-horario").innerHTML) pintarHorario();      // só na entrada: a atualização de 1 em 1 minuto não apaga o que está sendo digitado
   const soma = k => d.unidades.reduce((t, u) => t + u[k], 0);
   const horas = Array.from({ length: 15 }, (_, i) => i + 6);          // 6h às 20h
   $d("dono-painel").innerHTML = `
