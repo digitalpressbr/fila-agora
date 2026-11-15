@@ -772,7 +772,7 @@ if (navigator.serviceWorker) navigator.serviceWorker.addEventListener("message",
   if (e.data && e.data.tipo === "fila-aviso") mostrarChamada(e.data.titulo, e.data.corpo);
 });
 if (nativo) { try { pref.ligado = !!JSON.parse(nativo.estado()).ligado; guardar(); } catch (x) {} }
-const VERSAO_WEB = "1.7";
+const VERSAO_WEB = "1.8";
 (() => {
   let app = ""; try { if (nativo && nativo.versao) app = nativo.versao(); } catch (x) {}
   document.getElementById("versao").textContent = "Fila Agora · " + (nativo ? "aplicativo Android " + (app || "1.2 ou anterior") + " · " : "") + "tela " + VERSAO_WEB;
@@ -792,11 +792,12 @@ function abrirDono() {
 async function prepararEntrada() {
   $d("dono-painel").innerHTML = ""; $d("dono-entrada").hidden = false; $d("dono-sair").hidden = true; $d("dono-erro").textContent = "";
   let e = {}; try { e = await (await rpc("fa_admin_estado", {})).json(); } catch (x) {}
-  const criar = !!conviteDono && e.convite_aberto && !e.tem_senha;
+  const criar = (!!conviteDono || e.primeiro_livre) && e.convite_aberto && !e.tem_senha;
   $d("dono-c2").hidden = !criar;
   $d("dono-entrar").textContent = criar ? "Criar senha e entrar" : "Entrar";
   $d("dono-entrar").dataset.modo = criar ? "criar" : "entrar";
-  $d("dono-msg").textContent = criar ? "Primeiro acesso: crie a senha do administrador. Mínimo de 6 caracteres."
+  $d("dono-c1").firstChild.textContent = criar ? "Crie a sua senha" : "Senha";
+  $d("dono-msg").textContent = criar ? "Primeiro acesso: você mesmo cria a senha do administrador agora. Digite a senha que quiser, duas vezes. Mínimo de 6 caracteres."
     : e.tem_senha ? "Entre com a senha do administrador." : "O acesso do dono ainda não foi criado. Abra o link de conviteDono que você recebeu.";
 }
 $d("dono-entrar").addEventListener("click", async () => {
@@ -805,7 +806,7 @@ $d("dono-entrar").addEventListener("click", async () => {
   if ($d("dono-entrar").dataset.modo === "criar") {
     if (s1.length < 6) { erro.textContent = "A senha precisa de pelo menos 6 caracteres."; return; }
     if (s1 !== $d("dono-senha2").value) { erro.textContent = "As duas senhas não são iguais."; return; }
-    const r = await rpc("fa_admin_definir", { p_convite: conviteDono, p_senha: s1 });
+    const r = await rpc("fa_admin_definir", { p_convite: conviteDono || "", p_senha: s1 });
     if (!r.ok) { erro.textContent = "Este conviteDono não vale mais. Peça um novo."; return; }
     history.replaceState(null, "", location.pathname);
   }
