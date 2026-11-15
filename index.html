@@ -165,6 +165,11 @@
   .passo span { flex: 1; min-width: 0; }
   .passo svg { flex: none; width: 30px; height: 30px; color: var(--anil); }
   .passo b { font-weight: 800; }
+  .botao.baixar { text-decoration: none; font-size: 1.05rem; padding: 17px; animation: pisca 1.3s ease-in-out infinite; margin: 0 0 8px; }
+  .sub2.centro { text-align: center; margin: 0 0 6px; }
+  .ou { text-align: center; color: var(--parado); font-size: 0.76rem; font-weight: 700; margin: 10px 0; }
+  .perm { display: flex; align-items: center; gap: 10px; }
+  .perm span { flex: 1; } .perm button { border: 0; border-radius: 10px; padding: 9px 12px; font: inherit; font-weight: 800; font-size: 0.8rem; background: #7a5200; color: #fff; cursor: pointer; }
   .recado { border-radius: 14px; padding: 11px 13px; background: #fff4d6; color: #7a5200; font-size: 0.82rem; font-weight: 700; margin-bottom: 10px; line-height: 1.4; }
   .recado[hidden], .passos[hidden], .seta-ios[hidden], #and-direto[hidden], #and-manual[hidden] { display: none; }
   #and-direto { margin: 0 0 12px; font-size: 1.05rem; padding: 17px; animation: pisca 1.3s ease-in-out infinite; }
@@ -219,6 +224,7 @@
       <div class="alertas">
         <h3><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22a2.500 2.500 0 0 0 2.400-2H9.600A2.500 2.500 0 0 0 12 22zm7-6V11a7 7 0 0 0-5.500-6.800V3.500a1.500 1.500 0 0 0-3 0v.700A7 7 0 0 0 5 11v5l-2 2v1h18v-1z"/></svg>Avise quando tiver vaga</h3>
         <p id="al-estado">Escolha as unidades e toque em Ativar.</p>
+        <div class="recado perm" id="al-perm" hidden><span id="al-perm-txt"></span><button id="al-perm-btn">Liberar</button></div>
         <label class="opcao"><input type="checkbox" id="al-u1" data-unid="unidade-1">Unidade Centro</label>
         <label class="opcao"><input type="checkbox" id="al-u2" data-unid="unidade-2">Unidade Avenida</label>
         <select id="al-limite" aria-label="Quando avisar">
@@ -275,6 +281,9 @@
     <p class="sub2">Leva 10 segundos e não ocupa espaço.</p>
     <div class="passos" id="passos-android">
       <div class="recado" id="and-aviso" hidden>Você abriu por dentro de outro aplicativo. Toque nos três pontinhos e em <b>Abrir no Chrome</b> antes de instalar.</div>
+      <a class="botao baixar" href="https://github.com/digitalpressbr/fila-agora/releases/latest/download/fila-agora.apk">Baixar o aplicativo Android</a>
+      <p class="sub2 centro">Com buzina e aviso por cima de tudo, mesmo fechado.</p>
+      <p class="ou">ou use a versão leve, sem baixar arquivo</p>
       <button class="botao" id="and-direto" hidden>Instalar agora</button>
       <div id="and-manual">
         <div class="passo"><i>1</i><span>Toque nos <b>três pontinhos</b>, no canto de cima do Chrome.</span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="12" cy="19" r="2.2"/></svg></div>
@@ -480,7 +489,8 @@ document.querySelectorAll("[data-demo]").forEach(b => b.addEventListener("click"
 // ---- instalar o aplicativo ----
 let convite = null;
 const cartaoInstalar = document.getElementById("instalar"), folha = document.getElementById("folha");
-const jaInstalado = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const nativo = window.FilaNativo || null;
+const jaInstalado = () => !!nativo || matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
 const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 const ehSafari = ehIOS && !/crios|fxios|edgios|gsa\//i.test(navigator.userAgent);
 const dentroDeOutroApp = /; wv\)|fban|fbav|instagram|whatsapp/i.test(navigator.userAgent);
@@ -578,12 +588,30 @@ async function desinscreverPush() {
     if (ins) { await rpc("fa_desinscrever", { p_endpoint: ins.endpoint }); await ins.unsubscribe(); }
   } catch (e) {}
 }
+const PERMISSOES = [["notificacoes", "Libere as notificações para a buzina tocar."],
+  ["telaCheia", "Libere o aviso em tela cheia."], ["sobrepor", "Libere aparecer por cima de outros aplicativos."]];
+function conferirPermissoes() {
+  const caixa = document.getElementById("al-perm");
+  if (!nativo || !pref.ligado) { caixa.hidden = true; return; }
+  let e = {}; try { e = JSON.parse(nativo.estado()); } catch (x) {}
+  const falta = PERMISSOES.find(([k]) => e[k] === false);
+  caixa.hidden = !falta;
+  if (falta) { document.getElementById("al-perm-txt").textContent = falta[1]; document.getElementById("al-perm-btn").onclick = () => nativo.pedir(falta[0]); }
+}
+window.addEventListener("fila-nativo-voltou", conferirPermissoes);
+function aplicarNoCelular() {
+  if (!nativo) return false;
+  if (pref.ligado && pref.unidades.length) nativo.ligar(pref.unidades.join(","), pref.limite); else nativo.desligar();
+  conferirPermissoes();
+  return true;
+}
 document.getElementById("al-ligar").addEventListener("click", async () => {
   lerFormulario();
   if (!pref.ligado && !pref.unidades.length) { toque("Marque pelo menos uma unidade."); return; }
   buzina.play().then(() => { buzina.pause(); buzina.currentTime = 0; }).catch(() => {});   // libera o som neste toque
   pref.ligado = !pref.ligado; guardar(); pintarAlertas();
   Object.keys(estadoAlerta).forEach(k => delete estadoAlerta[k]);
+  if (aplicarNoCelular()) { toque(pref.ligado ? "Pronto. A buzina toca mesmo com o aplicativo fechado, pelas próximas 4 horas." : "Alertas desligados."); return; }
   if (pref.ligado) {
     const r = await inscreverPush().catch(() => "erro");
     toque(r === "ok" ? "Pronto. Com o aplicativo fechado o aviso chega como notificação."
@@ -594,9 +622,13 @@ document.getElementById("al-ligar").addEventListener("click", async () => {
 });
 ["al-limite", ...[...document.querySelectorAll("[data-unid]")].map(c => c.id)].forEach(id => {
   const el = document.getElementById(id);
-  if (el) el.addEventListener("change", () => { lerFormulario(); guardar(); Object.keys(estadoAlerta).forEach(k => delete estadoAlerta[k]); if (pref.ligado) inscreverPush().catch(() => {}); });
+  if (el) el.addEventListener("change", () => { lerFormulario(); guardar(); Object.keys(estadoAlerta).forEach(k => delete estadoAlerta[k]);
+    if (pref.ligado && !aplicarNoCelular()) inscreverPush().catch(() => {}); });
 });
-document.getElementById("al-testar").addEventListener("click", () => mostrarChamada("Vaga na Unidade Centro!", "Isto é um teste. É assim que o aviso aparece e toca."));
+document.getElementById("al-testar").addEventListener("click", () => {
+  if (nativo) { nativo.testar(); toque("Saia do aplicativo agora: em 4 segundos a chamada aparece com a buzina."); return; }
+  mostrarChamada("Vaga na Unidade Centro!", "Isto é um teste. É assim que o aviso aparece e toca.");
+});
 
 function avaliarAlertas(itens) {
   if (!pref.ligado) return;
@@ -612,7 +644,9 @@ function avaliarAlertas(itens) {
 if (navigator.serviceWorker) navigator.serviceWorker.addEventListener("message", e => {
   if (e.data && e.data.tipo === "fila-aviso") mostrarChamada(e.data.titulo, e.data.corpo);
 });
+if (nativo) { try { pref.ligado = !!JSON.parse(nativo.estado()).ligado; guardar(); } catch (x) {} }
 pintarAlertas();
+conferirPermissoes();
 
 buscar();
 setInterval(buscar, 10000);
