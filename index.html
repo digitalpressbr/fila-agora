@@ -752,7 +752,7 @@ pintarAlertas();
 conferirPermissoes();
 
 // ---- área do dono: veículos por hora, dia, semana e mês ----
-const convite = new URLSearchParams(location.search).get("admin");
+const conviteDono = new URLSearchParams(location.search).get("admin");
 let senhaDono = ""; try { senhaDono = sessionStorage.getItem("fila-dono") || ""; } catch (x) {}
 let relogioDono;
 const $d = id => document.getElementById(id);
@@ -765,12 +765,12 @@ function abrirDono() {
 async function prepararEntrada() {
   $d("dono-painel").innerHTML = ""; $d("dono-entrada").hidden = false; $d("dono-sair").hidden = true; $d("dono-erro").textContent = "";
   let e = {}; try { e = await (await rpc("fa_admin_estado", {})).json(); } catch (x) {}
-  const criar = !!convite && e.convite_aberto && !e.tem_senha;
+  const criar = !!conviteDono && e.convite_aberto && !e.tem_senha;
   $d("dono-c2").hidden = !criar;
   $d("dono-entrar").textContent = criar ? "Criar senha e entrar" : "Entrar";
   $d("dono-entrar").dataset.modo = criar ? "criar" : "entrar";
   $d("dono-msg").textContent = criar ? "Primeiro acesso: crie a senha do administrador. Mínimo de 6 caracteres."
-    : e.tem_senha ? "Entre com a senha do administrador." : "O acesso do dono ainda não foi criado. Abra o link de convite que você recebeu.";
+    : e.tem_senha ? "Entre com a senha do administrador." : "O acesso do dono ainda não foi criado. Abra o link de conviteDono que você recebeu.";
 }
 $d("dono-entrar").addEventListener("click", async () => {
   const s1 = $d("dono-senha").value, erro = $d("dono-erro");
@@ -778,8 +778,8 @@ $d("dono-entrar").addEventListener("click", async () => {
   if ($d("dono-entrar").dataset.modo === "criar") {
     if (s1.length < 6) { erro.textContent = "A senha precisa de pelo menos 6 caracteres."; return; }
     if (s1 !== $d("dono-senha2").value) { erro.textContent = "As duas senhas não são iguais."; return; }
-    const r = await rpc("fa_admin_definir", { p_convite: convite, p_senha: s1 });
-    if (!r.ok) { erro.textContent = "Este convite não vale mais. Peça um novo."; return; }
+    const r = await rpc("fa_admin_definir", { p_convite: conviteDono, p_senha: s1 });
+    if (!r.ok) { erro.textContent = "Este conviteDono não vale mais. Peça um novo."; return; }
     history.replaceState(null, "", location.pathname);
   }
   senhaDono = s1; carregarDono();
@@ -820,7 +820,7 @@ async function carregarDono() {
   clearInterval(relogioDono);
   relogioDono = setInterval(() => { if (!document.hidden && $d("t-dono").classList.contains("ativa")) carregarDono(); }, 60000);
 }
-if (convite) abrirDono();
+if (conviteDono) abrirDono();
 
 buscar();
 setInterval(buscar, 10000);
