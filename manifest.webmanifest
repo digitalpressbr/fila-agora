@@ -1,18 +1,32 @@
 {
  "name": "Onda Azul · Fila Agora",
  "short_name": "Fila Agora",
+ "description": "Veja a fila do lava-rápido antes de sair de casa.",
  "start_url": "./",
  "scope": "./",
  "display": "standalone",
+ "orientation": "portrait",
  "background_color": "#23288f",
  "theme_color": "#23288f",
  "lang": "pt-BR",
  "icons": [
   {
-   "src": "icone.svg",
-   "sizes": "any",
-   "type": "image/svg+xml",
+   "src": "icone-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
    "purpose": "any"
+  },
+  {
+   "src": "icone-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icone-mascara.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
   }
  ]
 }

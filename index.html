@@ -6,7 +6,8 @@
 <meta name="theme-color" content="#23288f">
 <title>Onda Azul · Fila Agora</title>
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icone.svg" type="image/svg+xml">
+<link rel="icon" href="icone-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icone-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -130,6 +131,31 @@
     padding: 11px 16px; border-radius: 14px; font-size: 0.82rem; font-weight: 600; max-width: 88vw; text-align: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 9; }
   .aviso-toque.mostra { opacity: 1; }
   @media (prefers-reduced-motion: reduce) { .vivo .ponto, .tela.ativa { animation: none; } }
+
+  /* instalar e alertas */
+  .instalar { display: flex; align-items: center; gap: 12px; background: var(--anil); color: #fff; border-radius: 18px; padding: 13px 14px; margin: 14px 0 0; }
+  .instalar svg { width: 34px; height: 34px; flex: none; animation: desce 1.4s ease-in-out infinite; }
+  @keyframes desce { 50% { transform: translateY(4px); } }
+  .instalar div { flex: 1; font-size: 0.8rem; font-weight: 600; line-height: 1.35; } .instalar b { display: block; font-size: 0.98rem; font-weight: 800; }
+  .instalar button { border: 0; border-radius: 12px; padding: 11px 16px; font: inherit; font-weight: 800; font-size: 0.88rem; color: var(--anil); background: #fff; cursor: pointer; }
+  .alertas { background: var(--branco); border: 1px solid var(--linha); border-radius: 22px; padding: 18px; margin-bottom: 14px; box-shadow: 0 6px 18px rgba(35,40,143,0.07); }
+  .alertas h3 { margin: 0 0 4px; font-size: 1.02rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+  .alertas h3 svg { width: 22px; height: 22px; color: var(--ceu); }
+  .alertas p { margin: 0 0 12px; color: var(--suave); font-size: 0.8rem; font-weight: 600; line-height: 1.4; }
+  .opcao { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 14px; background: var(--fundo); margin-bottom: 8px; font-size: 0.9rem; font-weight: 700; cursor: pointer; }
+  .opcao input { width: 20px; height: 20px; accent-color: var(--anil); }
+  .alertas select { width: 100%; padding: 12px; border-radius: 14px; border: 1px solid var(--linha); background: var(--fundo); font: inherit; font-weight: 700; font-size: 0.9rem; color: var(--texto); margin: 4px 0 12px; }
+  .alertas .dupla { display: grid; grid-template-columns: 1.4fr 1fr; gap: 10px; }
+  .alertas .botao { margin-top: 0; } .alertas .botao[aria-pressed="true"] { background: var(--cheio); }
+  .alertas .botao.leve { background: var(--ceu-claro); color: var(--anil); }
+  .chamada { position: fixed; inset: 0; z-index: 50; background: radial-gradient(circle at 50% 30%, #2f36b8, var(--anil-escuro)); color: #fff;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 28px; }
+  .chamada[hidden] { display: none; }
+  .chamada svg { width: 150px; height: 90px; animation: buzina 0.45s ease-in-out infinite alternate; }
+  @keyframes buzina { to { transform: scale(1.08) rotate(-2deg); } }
+  .chamada h2 { font-size: 1.9rem; font-weight: 800; margin: 26px 0 10px; line-height: 1.15; text-wrap: balance; }
+  .chamada p { font-size: 1.05rem; font-weight: 600; margin: 0 0 34px; opacity: 0.92; }
+  .chamada button { border: 0; border-radius: 18px; padding: 18px 34px; font: inherit; font-weight: 800; font-size: 1.1rem; color: var(--anil); background: #fff; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -150,8 +176,25 @@
 
   <main>
     <section class="tela ativa" id="t-fila">
+      <div class="instalar" id="instalar" hidden>
+        <svg viewBox="0 0 34 34" fill="none" stroke="#8fdcff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 5v17M9 15l8 8 8-8M6 29h22"/></svg>
+        <div><b>Instale o aplicativo</b>Fica na tela inicial e avisa quando tiver vaga.</div>
+        <button id="btn-instalar">Instalar</button>
+      </div>
       <div id="dica" class="dica" hidden></div>
       <div id="lista"><p class="aviso">Carregando…</p></div>
+      <div class="alertas">
+        <h3><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22a2.500 2.500 0 0 0 2.400-2H9.600A2.500 2.500 0 0 0 12 22zm7-6V11a7 7 0 0 0-5.500-6.800V3.500a1.500 1.500 0 0 0-3 0v.700A7 7 0 0 0 5 11v5l-2 2v1h18v-1z"/></svg>Avise quando tiver vaga</h3>
+        <p id="al-estado">Escolha as unidades e toque em Ativar.</p>
+        <label class="opcao"><input type="checkbox" id="al-u1" data-unid="unidade-1">Unidade Centro</label>
+        <label class="opcao"><input type="checkbox" id="al-u2" data-unid="unidade-2">Unidade Avenida</label>
+        <select id="al-limite" aria-label="Quando avisar">
+          <option value="0">Avisar quando estiver sem fila</option>
+          <option value="1">Avisar com até 1 veículo na fila</option>
+          <option value="2">Avisar com fila pequena (até 2 veículos)</option>
+        </select>
+        <div class="dupla"><button class="botao" id="al-ligar" aria-pressed="false">Ativar alertas</button><button class="botao leve" id="al-testar">Testar buzina</button></div>
+      </div>
       <div class="simular"><span id="sim-texto">Quer ver com movimento? Rode uma simulação.</span><button id="sim" aria-pressed="false">Simular movimento</button></div>
       <div class="info">Todos os dias, das 8h às 18h30.<br>A contagem é feita por câmera, sem ler placa e sem guardar imagem.</div>
     </section>
@@ -192,6 +235,10 @@
 </div></nav>
 <div class="aviso-toque" id="toque" role="status"></div>
 
+<div class="chamada" id="chamada" role="alertdialog" aria-labelledby="ch-titulo" hidden>
+  <svg viewBox="0 0 62 36" aria-hidden="true"><path d="M3 26v-6c0-2 1-3 3-3l6-1 6-8c1-2 2-2 4-2h17c2 0 3 0 4 2l7 8 6 1c2 0 3 1 3 3v6c0 1-1 2-2 2H5c-1 0-2-1-2-2z" fill="#38b6ea" stroke="#fff" stroke-width="1.6"/><path d="M22 8h8v8H16zM33 8h7l6 8H33z" fill="#d9f1fc"/><circle cx="16" cy="28" r="6" fill="#fff"/><circle cx="46" cy="28" r="6" fill="#fff"/></svg>
+  <h2 id="ch-titulo"></h2><p id="ch-corpo"></p><button id="ch-ok">Ok, estou indo</button>
+</div>
 <script>
 const URL_API = "https://hadbqjgfqfokutltiqra.supabase.co/rest/v1/fa_status?select=*&order=ordem";
 const CHAVE = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhZGJxamdmcWZva3V0bHRpcXJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk0NTQyMTMsImV4cCI6MjEwNTAzMDIxM30.LnEtw-GTzmjioatG0O1VVztxkhVs8szXCgpJFt1ef0w";
@@ -304,6 +351,7 @@ function desenhar() {
       dica.hidden = false;
     } else dica.hidden = true;
   }
+  avaliarAlertas(itens);
   itens.forEach(u => {
     const el = lista.querySelector(`[data-quando="${u.unidade}"]`);
     if (el) el.textContent = (simulando ? "Simulação" : u.atualizado_em ? "Atualizado " + faz(u.idade) : "Aguardando a primeira leitura")
@@ -372,6 +420,116 @@ document.querySelectorAll("[data-demo]").forEach(b => b.addEventListener("click"
   const t = document.getElementById("toque"); t.textContent = b.dataset.demo; t.classList.add("mostra");
   clearTimeout(relogio); relogio = setTimeout(() => t.classList.remove("mostra"), 3500);
 }));
+
+// ---- instalar o aplicativo ----
+let convite = null;
+const cartaoInstalar = document.getElementById("instalar");
+const jaInstalado = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); convite = e; if (!jaInstalado()) cartaoInstalar.hidden = false; });
+window.addEventListener("appinstalled", () => { cartaoInstalar.hidden = true; convite = null; });
+document.getElementById("btn-instalar").addEventListener("click", async () => {
+  if (!convite) { toque("No Chrome: toque nos três pontinhos e em Adicionar à tela inicial. No iPhone: Compartilhar e Adicionar à Tela de Início."); return; }
+  convite.prompt(); await convite.userChoice; convite = null; cartaoInstalar.hidden = true;
+});
+if (!jaInstalado() && /iphone|ipad/i.test(navigator.userAgent)) cartaoInstalar.hidden = false;
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+
+function toque(texto) {
+  const t = document.getElementById("toque"); t.textContent = texto; t.classList.add("mostra");
+  clearTimeout(toque.r); toque.r = setTimeout(() => t.classList.remove("mostra"), 4500);
+}
+
+// ---- alertas de vaga: buzina, tela cheia e notificação ----
+const CHAVE_PUSH = "BCg-24mDbLJGTy6zUdGgxQ7pIskHRgGRw-TUuP0nUGcAIwpz9gvQWdazTH0u44ZF5EBDB0N08z3NiEKwFgsP-_I";
+const buzina = new Audio("buzina.mp3"); buzina.preload = "auto";
+let pref = { ligado: false, unidades: ["unidade-1", "unidade-2"], limite: 0 };
+try { pref = { ...pref, ...JSON.parse(localStorage.getItem("fila-alertas") || "{}") }; } catch (e) {}
+const estadoAlerta = {};          // por unidade: true = condição já estava atendida (não buzina de novo)
+const guardar = () => { try { localStorage.setItem("fila-alertas", JSON.stringify(pref)); } catch (e) {} };
+
+function pintarAlertas() {
+  document.querySelectorAll("[data-unid]").forEach(c => { c.checked = pref.unidades.includes(c.dataset.unid); });
+  document.getElementById("al-limite").value = String(pref.limite);
+  const b = document.getElementById("al-ligar");
+  b.textContent = pref.ligado ? "Desligar alertas" : "Ativar alertas";
+  b.setAttribute("aria-pressed", pref.ligado);
+  document.getElementById("al-estado").textContent = pref.ligado
+    ? "Alertas ligados. Você ouve a buzina quando a fila chegar nesse ponto."
+    : "Escolha as unidades e toque em Ativar.";
+}
+function lerFormulario() {
+  pref.unidades = [...document.querySelectorAll("[data-unid]")].filter(c => c.checked).map(c => c.dataset.unid);
+  pref.limite = Number(document.getElementById("al-limite").value);
+}
+function tocarBuzina() {
+  try { buzina.currentTime = 0; buzina.play().catch(() => {}); } catch (e) {}
+  if (navigator.vibrate) navigator.vibrate([350, 120, 350, 120, 700]);
+}
+function mostrarChamada(titulo, corpo) {
+  document.getElementById("ch-titulo").textContent = titulo;
+  document.getElementById("ch-corpo").textContent = corpo;
+  document.getElementById("chamada").hidden = false;
+  tocarBuzina();
+}
+document.getElementById("ch-ok").addEventListener("click", () => { document.getElementById("chamada").hidden = true; buzina.pause(); });
+
+function base64ParaBytes(s) {
+  const p = "=".repeat((4 - s.length % 4) % 4), b = atob((s + p).replace(/-/g, "+").replace(/_/g, "/"));
+  return Uint8Array.from([...b].map(c => c.charCodeAt(0)));
+}
+const rpc = (nome, corpo) => fetch("https://hadbqjgfqfokutltiqra.supabase.co/rest/v1/rpc/" + nome, {
+  method: "POST", headers: { apikey: CHAVE, Authorization: "Bearer " + CHAVE, "Content-Type": "application/json" }, body: JSON.stringify(corpo) });
+
+async function inscreverPush() {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) return "sem-suporte";
+  if (await Notification.requestPermission() !== "granted") return "negado";
+  const reg = await navigator.serviceWorker.ready;
+  const ins = await reg.pushManager.getSubscription() || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: base64ParaBytes(CHAVE_PUSH) });
+  const j = ins.toJSON();
+  const r = await rpc("fa_inscrever", { p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth, p_unidades: pref.unidades, p_limite: pref.limite });
+  return r.ok ? "ok" : "erro";
+}
+async function desinscreverPush() {
+  try {
+    const reg = await navigator.serviceWorker.ready, ins = await reg.pushManager.getSubscription();
+    if (ins) { await rpc("fa_desinscrever", { p_endpoint: ins.endpoint }); await ins.unsubscribe(); }
+  } catch (e) {}
+}
+document.getElementById("al-ligar").addEventListener("click", async () => {
+  lerFormulario();
+  if (!pref.ligado && !pref.unidades.length) { toque("Marque pelo menos uma unidade."); return; }
+  buzina.play().then(() => { buzina.pause(); buzina.currentTime = 0; }).catch(() => {});   // libera o som neste toque
+  pref.ligado = !pref.ligado; guardar(); pintarAlertas();
+  Object.keys(estadoAlerta).forEach(k => delete estadoAlerta[k]);
+  if (pref.ligado) {
+    const r = await inscreverPush().catch(() => "erro");
+    toque(r === "ok" ? "Pronto. Com o aplicativo fechado o aviso chega como notificação."
+      : r === "negado" ? "Notificações bloqueadas no celular. Com o aplicativo aberto a buzina funciona."
+      : r === "sem-suporte" ? "Este navegador não recebe notificação. Com o aplicativo aberto a buzina funciona."
+      : "Alertas ligados. A notificação com o aplicativo fechado não pôde ser registrada agora.");
+  } else desinscreverPush();
+});
+["al-limite", ...[...document.querySelectorAll("[data-unid]")].map(c => c.id)].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener("change", () => { lerFormulario(); guardar(); Object.keys(estadoAlerta).forEach(k => delete estadoAlerta[k]); if (pref.ligado) inscreverPush().catch(() => {}); });
+});
+document.getElementById("al-testar").addEventListener("click", () => mostrarChamada("Vaga na Unidade Centro!", "Isto é um teste. É assim que o aviso aparece e toca."));
+
+function avaliarAlertas(itens) {
+  if (!pref.ligado) return;
+  itens.forEach(u => {
+    if (!pref.unidades.includes(u.unidade)) return;
+    const atende = u.vivo && u.veiculos <= pref.limite, antes = estadoAlerta[u.unidade];
+    estadoAlerta[u.unidade] = atende;
+    if (atende && antes === false && document.visibilityState === "visible")
+      mostrarChamada(u.veiculos === 0 ? `${u.nome} sem fila!` : `Fila pequena na ${u.nome}`,
+        u.veiculos === 0 ? "Pista livre agora. Bom momento para ir." : `${u.veiculos} ${plural(u.veiculos, "veículo", "veículos")} na fila agora.`);
+  });
+}
+if (navigator.serviceWorker) navigator.serviceWorker.addEventListener("message", e => {
+  if (e.data && e.data.tipo === "fila-aviso") mostrarChamada(e.data.titulo, e.data.corpo);
+});
+pintarAlertas();
 
 buscar();
 setInterval(buscar, 10000);
