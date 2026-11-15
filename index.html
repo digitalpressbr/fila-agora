@@ -51,12 +51,37 @@
   .ender { color: var(--suave); font-size: 0.8rem; font-weight: 500; margin-top: 3px; }
   .selo { font-size: 0.74rem; font-weight: 800; padding: 6px 12px; border-radius: 999px; color: var(--branco);
     background: var(--cor, var(--parado)); white-space: nowrap; text-transform: uppercase; letter-spacing: 0.04em; }
-  .meio { display: flex; align-items: center; gap: 14px; margin: 16px 0 6px; }
+  .meio { display: none; }
   .numero { font-size: 4.4rem; font-weight: 800; line-height: 0.9; letter-spacing: -0.05em; font-variant-numeric: tabular-nums;
     color: var(--cor, var(--parado)); min-width: 1.1ch; }
   .unid { font-size: 0.98rem; font-weight: 600; color: var(--suave); line-height: 1.3; }
   .carrinhos { display: flex; gap: 5px; margin-top: 7px; min-height: 18px; }
   .carrinhos i { width: 26px; height: 14px; border-radius: 5px 8px 3px 3px; background: var(--cor, var(--parado)); opacity: 0.9; }
+  /* simulador: pista com túnel de lavagem e carrinhos */
+  .pista { position: relative; height: 104px; margin: 14px -4px 2px; border-radius: 16px; overflow: hidden;
+    background: linear-gradient(#e8f4fd 0 62%, #c9d3e6 62% 100%); }
+  .pista::after { content: ""; position: absolute; left: 0; right: 0; bottom: 14px; height: 3px;
+    background: repeating-linear-gradient(90deg, #fff 0 16px, transparent 16px 30px); opacity: 0.9; }
+  .tunel { position: absolute; left: 6px; bottom: 26px; width: 92px; height: 72px; z-index: 3; pointer-events: none; }
+  .carro { position: absolute; bottom: 24px; width: 62px; height: 36px; z-index: 2; transition: left 0.9s cubic-bezier(.3,.8,.3,1); }
+  .carro.novo { animation: chega 1.1s cubic-bezier(.2,.8,.3,1); }
+  .carro svg { width: 100%; height: 100%; display: block; }
+  .carro.lavando svg { animation: treme 0.5s ease-in-out infinite alternate; }
+  @keyframes chega { from { transform: translateX(340px); } }
+  @keyframes treme { to { transform: translateY(-1.5px); } }
+  .bolha { position: absolute; z-index: 4; border-radius: 50%; background: rgba(255,255,255,0.9); box-shadow: inset 0 0 0 1.5px rgba(56,182,234,0.55);
+    animation: sobe 2.4s ease-in infinite; }
+  @keyframes sobe { from { transform: translateY(0) scale(0.6); opacity: 0.95; } to { transform: translateY(-46px) scale(1.15); opacity: 0; } }
+  .mais { position: absolute; right: 8px; bottom: 32px; z-index: 5; background: var(--anil); color: #fff; font-size: 0.72rem; font-weight: 800; padding: 5px 9px; border-radius: 999px; }
+  .vazio { position: absolute; left: 112px; right: 10px; top: 30px; color: var(--suave); font-size: 0.82rem; font-weight: 700; }
+  .placar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .placar div { border-radius: 14px; padding: 10px 13px; font-size: 0.78rem; font-weight: 700; color: var(--suave); background: var(--fundo); }
+  .placar b { display: block; font-size: 1.5rem; font-weight: 800; color: var(--texto); font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .placar .lav b { color: var(--ceu); }
+  .simular { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--branco); border: 1px dashed var(--ceu);
+    border-radius: 16px; padding: 12px 14px; margin: 4px 0 14px; font-size: 0.8rem; font-weight: 600; color: var(--suave); }
+  .simular button { border: 0; border-radius: 12px; padding: 10px 14px; font: inherit; font-weight: 800; font-size: 0.8rem; color: #fff; background: var(--ceu); cursor: pointer; white-space: nowrap; }
+  .simular button[aria-pressed="true"] { background: var(--cheio); }
   .dados { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
   .dado { background: var(--fundo); border-radius: 14px; padding: 11px 13px; }
   .dado span { display: block; color: var(--suave); font-size: 0.72rem; font-weight: 600; margin-bottom: 3px; }
@@ -127,6 +152,7 @@
     <section class="tela ativa" id="t-fila">
       <div id="dica" class="dica" hidden></div>
       <div id="lista"><p class="aviso">Carregando…</p></div>
+      <div class="simular"><span id="sim-texto">Quer ver com movimento? Rode uma simulação.</span><button id="sim" aria-pressed="false">Simular movimento</button></div>
       <div class="info">Todos os dias, das 8h às 18h30.<br>A contagem é feita por câmera, sem ler placa e sem guardar imagem.</div>
     </section>
 
@@ -178,7 +204,6 @@ const CARRETAS = [
   ["Reboque para moto", "Leva até 2 motos, com rampa.", 0, "moto"],
 ];
 const PRODUTOS = [["Shampoo automotivo", "Lava sem tirar a cera."], ["Cera líquida", "Brilho e proteção por semanas."], ["Pretinho para pneus", "O mesmo usado na unidade."], ["Toalha de microfibra", "Seca sem riscar a pintura."]];
-let dados = [], erro = false;
 
 const plural = (n, s, p) => n === 1 ? s : p;
 function minutos(seg) {
@@ -197,48 +222,134 @@ function nivel(n) {
   if (n <= 2) return ["Fila pequena", "var(--medio)"];
   return ["Cheio", "var(--cheio)"];
 }
+
+// ---- carrinhos de brinquedo: nunca a imagem real do veículo, só tipo e cor ----
+const TINTA = { branco: "#f7f9fc", prata: "#c5ccd8", cinza: "#8b93a6", preto: "#2a2e3b", vermelho: "#e0453a", azul: "#2f6fd6",
+  verde: "#1fa971", amarelo: "#f2c230", laranja: "#f08a24", roxo: "#7a4fd0" };
+const SORTIDAS = ["#2f6fd6", "#e0453a", "#c5ccd8", "#f2c230", "#1fa971", "#f7f9fc", "#f08a24", "#2a2e3b"];
+const RODA = (x, r = 6) => `<circle cx="${x}" cy="28" r="${r}" fill="#171b4d"/><circle cx="${x}" cy="28" r="${r * 0.42}" fill="#c9d3e6"/>`;
+function carrinho(tipo, tinta) {
+  const t = `fill="${tinta}" stroke="#171b4d" stroke-width="1.6" stroke-linejoin="round"`;
+  const vidro = 'fill="#bfe6fa" stroke="#171b4d" stroke-width="1"';
+  let corpo;
+  if (tipo === "truck") corpo = `<path d="M3 26v-7c0-2 1-3 3-3l5-1 5-8c1-2 2-2 4-2h8c2 0 3 1 3 3v8h26c1 0 2 1 2 2v8c0 1-1 2-2 2H5c-1 0-2-1-2-2z" ${t}/><path d="M20 8h7v7H16z" ${vidro}/><path d="M33 18h23" stroke="#171b4d" stroke-width="1.4"/>${RODA(16)}${RODA(47)}`;
+  else if (tipo === "bus") corpo = `<rect x="3" y="4" width="56" height="24" rx="5" ${t}/><path d="M8 9h9v8H8zM20 9h9v8h-9zM32 9h9v8h-9zM44 9h10v8H44z" ${vidro}/>${RODA(16)}${RODA(46)}`;
+  else if (tipo === "motorcycle") corpo = `<path d="M14 28l9-13h13l12 13M23 15l-5-5h-5M36 15l4-6h6" fill="none" stroke="${tinta}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 13h13" stroke="#171b4d" stroke-width="4" stroke-linecap="round"/>${RODA(14, 7)}${RODA(48, 7)}`;
+  else corpo = `<path d="M3 26v-6c0-2 1-3 3-3l6-1 6-8c1-2 2-2 4-2h17c2 0 3 0 4 2l7 8 6 1c2 0 3 1 3 3v6c0 1-1 2-2 2H5c-1 0-2-1-2-2z" ${t}/><path d="M22 8h8v8H16zM33 8h7l6 8H33z" ${vidro}/>${RODA(16)}${RODA(46)}`;
+  return `<svg viewBox="0 0 62 36" aria-hidden="true">${corpo}</svg>`;
+}
+const TUNEL = `<svg class="tunel" viewBox="0 0 92 72" aria-hidden="true">
+  <path d="M4 72V16c0-6 4-10 10-10h64c6 0 10 4 10 10v56h-8V20c0-3-2-5-5-5H17c-3 0-5 2-5 5v52z" fill="#23288f"/>
+  <rect x="2" y="2" width="88" height="10" rx="5" fill="#38b6ea"/>
+  <g fill="#38b6ea" opacity="0.55"><rect x="15" y="18" width="7" height="46" rx="3.5"/><rect x="70" y="18" width="7" height="46" rx="3.5"/></g>
+  <g fill="#2a8fd0" opacity="0.5"><rect x="27" y="15" width="5" height="12" rx="2.5"/><rect x="37" y="15" width="5" height="16" rx="2.5"/><rect x="47" y="15" width="5" height="13" rx="2.5"/><rect x="57" y="15" width="5" height="16" rx="2.5"/></g></svg>`;
+const BOLHAS = [[26, 34, 9, 0], [44, 30, 12, 0.5], [62, 36, 8, 1.1], [36, 44, 7, 1.6], [56, 46, 10, 0.9]]
+  .map(([x, b, d, s]) => `<i class="bolha" style="left:${x}px;bottom:${b}px;width:${d}px;height:${d}px;animation-delay:${s}s"></i>`).join("");
+
+let dados = [], erro = false, simulando = false, ultimaAssinatura = "", filasAntes = {};
+
+function filaDe(u) {
+  let f = Array.isArray(u.fila) ? u.fila : [];
+  if (f.length < (u.veiculos || 0)) f = f.concat(Array.from({ length: u.veiculos - f.length }, () => ({ c: "car" })));
+  return f.slice(0, u.veiculos || 0);
+}
+function montarPista(u, antes) {
+  if (!u.vivo) return `<div class="pista">${TUNEL}<div class="vazio">Sem leitura da câmera no momento.</div></div>`;
+  const fila = filaDe(u);
+  if (!fila.length) return `<div class="pista">${TUNEL}<div class="vazio">Pista livre. Pode vir!</div></div>`;
+  const largura = Math.max(280, (document.getElementById("lista").clientWidth || 340) - 36);
+  const cabem = Math.max(2, Math.floor((largura - 22) / 66));
+  const carros = fila.slice(0, cabem).map((v, i) => {
+    const tinta = TINTA[v.cor] || SORTIDAS[(i * 3 + u.ordem) % SORTIDAS.length];
+    return `<div class="carro ${i === 0 ? "lavando" : ""} ${i >= antes ? "novo" : ""}" style="left:${22 + i * 66}px">${carrinho(v.c, tinta)}</div>`;
+  }).join("");
+  const resto = fila.length - cabem;
+  return `<div class="pista">${carros}${TUNEL}${BOLHAS}${resto > 0 ? `<span class="mais">+${resto}</span>` : ""}</div>`;
+}
 function desenhar() {
   const lista = document.getElementById("lista"), dica = document.getElementById("dica");
-  if (erro && !dados.length) { lista.innerHTML = '<p class="aviso">Sem conexão. Tentando de novo…</p>'; dica.hidden = true; return; }
-  if (!dados.length) { lista.innerHTML = '<p class="aviso">Nenhuma unidade cadastrada.</p>'; dica.hidden = true; return; }
+  if (erro && !dados.length) { lista.innerHTML = '<p class="aviso">Sem conexão. Tentando de novo…</p>'; dica.hidden = true; ultimaAssinatura = ""; return; }
+  if (!dados.length) { lista.innerHTML = '<p class="aviso">Nenhuma unidade cadastrada.</p>'; dica.hidden = true; ultimaAssinatura = ""; return; }
   const agora = Date.now();
   const itens = dados.map(u => {
     const idade = u.atualizado_em ? (agora - new Date(u.atualizado_em).getTime()) / 1000 : Infinity;
     const [nome, ender] = VITRINE[u.unidade] || [u.nome, ""];
     return { ...u, nome, ender, idade, vivo: idade <= VELHO && u.veiculos != null };
   });
-  lista.innerHTML = itens.map(u => {
-    const [rotulo, cor] = u.vivo ? nivel(u.veiculos) : ["Sem leitura", "var(--parado)"];
-    const espera = u.vivo && u.permanencia_media_s != null ? minutos(u.veiculos * u.permanencia_media_s) : "—";
-    const carrinhos = u.vivo ? "<i></i>".repeat(Math.min(u.veiculos, 8)) : "";
-    return `<article class="cartao ${u.vivo ? "vivo" : ""}" style="--cor:${cor}">
-      <div class="linha1"><div><div class="nome">${u.nome}</div><div class="ender">${u.ender}</div></div><div class="selo">${rotulo}</div></div>
-      <div class="meio"><div class="numero">${u.vivo ? u.veiculos : "–"}</div>
-        <div><div class="unid">${u.vivo ? plural(u.veiculos, "veículo na fila", "veículos na fila") : "sem leitura no momento"}</div><div class="carrinhos">${carrinhos}</div></div></div>
-      <div class="dados">
-        <div class="dado"><span>Espera estimada</span><strong>${u.vivo && u.veiculos === 0 ? "sem espera" : espera}</strong></div>
-        <div class="dado"><span>Tempo médio por veículo</span><strong>${minutos(u.permanencia_media_s)}</strong></div>
-      </div>
-      <div class="quando"><i class="ponto"></i>${u.atualizado_em ? "Atualizado " + faz(u.idade) : "Aguardando a primeira leitura"}
-        ${u.paradas_hoje ? " · " + u.paradas_hoje + " " + plural(u.paradas_hoje, "atendimento hoje", "atendimentos hoje") : ""}</div>
-    </article>`;
-  }).join("");
-  const vivos = itens.filter(u => u.vivo);
-  if (vivos.length > 1) {
-    const melhor = vivos.reduce((a, b) => b.veiculos < a.veiculos ? b : a);
-    const empate = vivos.every(u => u.veiculos === melhor.veiculos);
-    dica.innerHTML = empate ? "As duas unidades estão iguais agora. Vá na mais perto." : `Melhor opção agora: <b>${melhor.nome}</b>.`;
-    dica.hidden = false;
-  } else dica.hidden = true;
+  const assinatura = JSON.stringify(itens.map(u => [u.unidade, u.vivo, u.veiculos, u.fila, u.permanencia_media_s, u.paradas_hoje]));
+  if (assinatura !== ultimaAssinatura) {
+    ultimaAssinatura = assinatura;
+    lista.innerHTML = itens.map(u => {
+      const [rotulo, cor] = u.vivo ? nivel(u.veiculos) : ["Sem leitura", "var(--parado)"];
+      const lavando = u.vivo && u.veiculos > 0 ? 1 : 0, aguardando = u.vivo ? Math.max(0, u.veiculos - 1) : 0;
+      const espera = !u.vivo ? "—" : u.veiculos === 0 ? "sem espera" : u.permanencia_media_s != null ? minutos(u.veiculos * u.permanencia_media_s) : "—";
+      const pista = montarPista(u, filasAntes[u.unidade] ?? 99);
+      filasAntes[u.unidade] = u.vivo ? (u.veiculos || 0) : 0;
+      return `<article class="cartao ${u.vivo ? "vivo" : ""}" style="--cor:${cor}">
+        <div class="linha1"><div><div class="nome">${u.nome}</div><div class="ender">${u.ender}</div></div><div class="selo">${rotulo}</div></div>
+        ${pista}
+        <div class="placar"><div class="lav"><b>${u.vivo ? lavando : "–"}</b>lavando agora</div><div><b>${u.vivo ? aguardando : "–"}</b>aguardando na fila</div></div>
+        <div class="dados">
+          <div class="dado"><span>Espera estimada</span><strong>${espera}</strong></div>
+          <div class="dado"><span>Tempo médio por veículo</span><strong>${minutos(u.permanencia_media_s)}</strong></div>
+        </div>
+        <div class="quando"><i class="ponto"></i><span data-quando="${u.unidade}"></span></div>
+      </article>`;
+    }).join("");
+    const vivos = itens.filter(u => u.vivo);
+    if (vivos.length > 1) {
+      const melhor = vivos.reduce((a, b) => b.veiculos < a.veiculos ? b : a);
+      const empate = vivos.every(u => u.veiculos === melhor.veiculos);
+      dica.innerHTML = empate ? "As duas unidades estão iguais agora. Vá na mais perto." : `Melhor opção agora: <b>${melhor.nome}</b>.`;
+      dica.hidden = false;
+    } else dica.hidden = true;
+  }
+  itens.forEach(u => {
+    const el = lista.querySelector(`[data-quando="${u.unidade}"]`);
+    if (el) el.textContent = (simulando ? "Simulação" : u.atualizado_em ? "Atualizado " + faz(u.idade) : "Aguardando a primeira leitura")
+      + (u.paradas_hoje ? " · " + u.paradas_hoje + " " + plural(u.paradas_hoje, "atendimento hoje", "atendimentos hoje") : "");
+  });
 }
 async function buscar() {
+  if (simulando) return;
   try {
     const r = await fetch(URL_API, { headers: { apikey: CHAVE, Authorization: "Bearer " + CHAVE }, cache: "no-store" });
     if (!r.ok) throw new Error(r.status);
-    dados = await r.json(); erro = false;
+    const novo = await r.json();
+    if (!simulando) { dados = novo; erro = false; }
   } catch (e) { erro = true; }
   desenhar();
 }
+
+// ---- simulação para apresentar: carrinhos inventados, só nesta tela ----
+const TIPOS = ["car", "car", "car", "truck", "car", "motorcycle", "truck", "car"], CORES = Object.keys(TINTA);
+const sorteia = a => a[Math.floor(Math.random() * a.length)];
+const novoCarro = () => ({ c: sorteia(TIPOS), cor: sorteia(CORES) });
+let relogioSim;
+function passoSim() {
+  dados = dados.map(u => {
+    let fila = u.fila.slice(), feitos = u.paradas_hoje;
+    const sorte = Math.random();
+    if (fila.length && sorte < 0.34) { fila.shift(); feitos++; }
+    else if (fila.length < 7 && sorte > 0.52) fila.push(novoCarro());
+    return { ...u, fila, veiculos: fila.length, paradas_hoje: feitos, atualizado_em: new Date().toISOString() };
+  });
+  desenhar();
+}
+document.getElementById("sim").addEventListener("click", e => {
+  simulando = !simulando;
+  e.currentTarget.setAttribute("aria-pressed", simulando);
+  e.currentTarget.textContent = simulando ? "Parar simulação" : "Simular movimento";
+  document.getElementById("sim-texto").textContent = simulando ? "Simulação ligada: estes carrinhos são inventados." : "Quer ver com movimento? Rode uma simulação.";
+  clearInterval(relogioSim);
+  if (simulando) {
+    const base = dados.length ? dados : [{ unidade: "unidade-1", ordem: 1 }, { unidade: "unidade-2", ordem: 2 }];
+    dados = base.map((u, i) => { const fila = Array.from({ length: i ? 1 : 3 }, novoCarro);
+      return { ...u, fila, veiculos: fila.length, permanencia_media_s: i ? 420 : 360, paradas_hoje: i ? 9 : 14, atualizado_em: new Date().toISOString() }; });
+    erro = false; filasAntes = {}; desenhar();
+    relogioSim = setInterval(passoSim, 2600);
+  } else { ultimaAssinatura = ""; filasAntes = {}; buscar(); }
+});
 
 const DESENHO = {
   aberta: '<path d="M6 22h44v14H6z" fill="#23288f"/><path d="M50 30h14" stroke="#23288f" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="40" r="7" fill="#171b4d"/><circle cx="24" cy="40" r="3" fill="#38b6ea"/>',
