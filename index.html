@@ -124,6 +124,28 @@
   .assinatura img { width: 34px; height: 34px; border-radius: 50%; flex: none; }
   .assinatura b { display: block; font-size: 0.78rem; font-weight: 800; color: var(--texto); }
   .versao { text-align: center; color: var(--parado); font-size: 0.64rem; font-weight: 600; margin: 0 0 10px; letter-spacing: 0.02em; }
+  .dono-link { display: block; margin: 0 auto 12px; border: 0; background: none; font: inherit; font-size: 0.7rem; font-weight: 700; color: var(--parado); text-decoration: underline; cursor: pointer; padding: 10px; }
+  .campo { display: block; margin-bottom: 12px; font-size: 0.8rem; font-weight: 700; color: var(--suave); }
+  .campo input { display: block; width: 100%; margin-top: 6px; padding: 14px; border-radius: 14px; border: 1px solid var(--linha); background: var(--branco); font: inherit; font-size: 1rem; font-weight: 600; color: var(--texto); }
+  .erro { color: var(--cheio); font-size: 0.82rem; font-weight: 700; margin: 0 0 10px; min-height: 1.1em; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0 4px; }
+  .kpi { background: var(--fundo); border-radius: 14px; padding: 10px 8px; text-align: center; }
+  .kpi span { display: block; font-size: 0.66rem; font-weight: 700; color: var(--suave); }
+  .kpi b { display: block; font-size: 1.5rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.15; }
+  .kpi.forte { background: var(--anil); } .kpi.forte span { color: #c9d4ff; } .kpi.forte b { color: #fff; }
+  .graf-t { font-size: 0.78rem; font-weight: 800; margin: 16px 0 6px; color: var(--texto); }
+  .barras { display: flex; align-items: flex-end; gap: 3px; height: 96px; padding-top: 16px; }
+  .barras div { flex: 1; min-width: 0; background: var(--ceu); border-radius: 4px 4px 0 0; min-height: 2px; position: relative; }
+  .barras div.zero { background: var(--linha); }
+  .barras div i { position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); font-style: normal; font-size: 0.62rem; font-weight: 800; color: var(--texto); padding-bottom: 1px; }
+  .eixo { display: flex; gap: 3px; margin-top: 3px; }
+  .eixo span { flex: 1; min-width: 0; text-align: center; font-size: 0.56rem; font-weight: 700; color: var(--parado); overflow: hidden; white-space: nowrap; }
+  .registros { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 0.8rem; }
+  .registros th { text-align: left; font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--suave); padding: 6px 4px; border-bottom: 1px solid var(--linha); }
+  .registros td { padding: 8px 4px; border-bottom: 1px solid var(--fundo); font-weight: 600; }
+  .registros .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .dono-topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 18px 4px 4px; }
+  .dono-topo h2 { margin: 0; } .dono-topo button { border: 0; border-radius: 12px; padding: 10px 14px; min-height: 44px; font: inherit; font-weight: 800; font-size: 0.8rem; background: var(--ceu-claro); color: var(--anil); cursor: pointer; }
   footer { color: var(--parado); font-size: 0.72rem; font-weight: 600; text-align: center; margin: 22px 10px 8px; line-height: 1.6; }
   footer b { color: var(--anil); }
 
@@ -286,9 +308,22 @@
       <div id="produtos"></div>
     </section>
 
+    <section class="tela" id="t-dono">
+      <div class="dono-topo"><h2>Área do dono</h2><button id="dono-sair" hidden>Sair</button></div>
+      <div id="dono-entrada" class="cartao">
+        <p class="nota" id="dono-msg" style="margin:0 0 14px">Entre com a senha do administrador.</p>
+        <label class="campo" id="dono-c1">Senha<input type="password" id="dono-senha" autocomplete="current-password"></label>
+        <label class="campo" id="dono-c2" hidden>Repita a senha<input type="password" id="dono-senha2" autocomplete="new-password"></label>
+        <p class="erro" id="dono-erro"></p>
+        <button class="botao" id="dono-entrar" style="margin-top:0">Entrar</button>
+      </div>
+      <div id="dono-painel"></div>
+    </section>
+
     <footer>Empresa e dados de locação e loja são <b>exemplos</b>. A fila é leitura real de câmera.</footer>
     <div class="assinatura" id="assinatura"><img src="digitalpressbr.png" alt="" width="34" height="34"><span>Desenvolvido por<b>Digital Press BR</b></span></div>
     <p class="versao" id="versao"></p>
+    <button class="dono-link" id="abrir-dono">Área do dono</button>
   </main>
 </div>
 
@@ -708,13 +743,84 @@ if (navigator.serviceWorker) navigator.serviceWorker.addEventListener("message",
   if (e.data && e.data.tipo === "fila-aviso") mostrarChamada(e.data.titulo, e.data.corpo);
 });
 if (nativo) { try { pref.ligado = !!JSON.parse(nativo.estado()).ligado; guardar(); } catch (x) {} }
-const VERSAO_WEB = "1.3";
+const VERSAO_WEB = "1.4";
 (() => {
   let app = ""; try { if (nativo && nativo.versao) app = nativo.versao(); } catch (x) {}
   document.getElementById("versao").textContent = "Fila Agora · " + (nativo ? "aplicativo Android " + (app || "1.2 ou anterior") + " · " : "") + "tela " + VERSAO_WEB;
 })();
 pintarAlertas();
 conferirPermissoes();
+
+// ---- área do dono: veículos por hora, dia, semana e mês ----
+const convite = new URLSearchParams(location.search).get("admin");
+let senhaDono = ""; try { senhaDono = sessionStorage.getItem("fila-dono") || ""; } catch (x) {}
+let relogioDono;
+const $d = id => document.getElementById(id);
+function abrirDono() {
+  document.querySelectorAll("nav button").forEach(x => x.setAttribute("aria-selected", "false"));
+  document.querySelectorAll(".tela").forEach(t => t.classList.toggle("ativa", t.id === "t-dono"));
+  window.scrollTo({ top: 0 });
+  if (senhaDono) carregarDono(); else prepararEntrada();
+}
+async function prepararEntrada() {
+  $d("dono-painel").innerHTML = ""; $d("dono-entrada").hidden = false; $d("dono-sair").hidden = true; $d("dono-erro").textContent = "";
+  let e = {}; try { e = await (await rpc("fa_admin_estado", {})).json(); } catch (x) {}
+  const criar = !!convite && e.convite_aberto && !e.tem_senha;
+  $d("dono-c2").hidden = !criar;
+  $d("dono-entrar").textContent = criar ? "Criar senha e entrar" : "Entrar";
+  $d("dono-entrar").dataset.modo = criar ? "criar" : "entrar";
+  $d("dono-msg").textContent = criar ? "Primeiro acesso: crie a senha do administrador. Mínimo de 6 caracteres."
+    : e.tem_senha ? "Entre com a senha do administrador." : "O acesso do dono ainda não foi criado. Abra o link de convite que você recebeu.";
+}
+$d("dono-entrar").addEventListener("click", async () => {
+  const s1 = $d("dono-senha").value, erro = $d("dono-erro");
+  erro.textContent = "";
+  if ($d("dono-entrar").dataset.modo === "criar") {
+    if (s1.length < 6) { erro.textContent = "A senha precisa de pelo menos 6 caracteres."; return; }
+    if (s1 !== $d("dono-senha2").value) { erro.textContent = "As duas senhas não são iguais."; return; }
+    const r = await rpc("fa_admin_definir", { p_convite: convite, p_senha: s1 });
+    if (!r.ok) { erro.textContent = "Este convite não vale mais. Peça um novo."; return; }
+    history.replaceState(null, "", location.pathname);
+  }
+  senhaDono = s1; carregarDono();
+});
+$d("dono-sair").addEventListener("click", () => { senhaDono = ""; try { sessionStorage.removeItem("fila-dono"); } catch (x) {} clearInterval(relogioDono); $d("dono-senha").value = ""; prepararEntrada(); });
+$d("abrir-dono").addEventListener("click", abrirDono);
+
+const barras = (valores, rotulos) => {
+  const max = Math.max(1, ...valores);
+  return `<div class="barras">${valores.map(n => `<div class="${n ? "" : "zero"}" style="height:${n ? Math.max(8, n / max * 100) : 2}%">${n ? `<i>${n}</i>` : ""}</div>`).join("")}</div>
+    <div class="eixo">${rotulos.map(r => `<span>${r}</span>`).join("")}</div>`;
+};
+async function carregarDono() {
+  const r = await rpc("fa_painel", { p_senha: senhaDono }).catch(() => null);
+  if (!r || !r.ok) { senhaDono = ""; await prepararEntrada(); $d("dono-erro").textContent = r ? "Senha incorreta." : "Sem conexão. Tente de novo."; return; }
+  try { sessionStorage.setItem("fila-dono", senhaDono); } catch (x) {}
+  const d = await r.json();
+  $d("dono-entrada").hidden = true; $d("dono-sair").hidden = false;
+  const soma = k => d.unidades.reduce((t, u) => t + u[k], 0);
+  const horas = Array.from({ length: 15 }, (_, i) => i + 6);          // 6h às 20h
+  $d("dono-painel").innerHTML = `
+    <div class="cartao"><div class="nome">Todas as unidades</div>
+      <div class="kpis"><div class="kpi forte"><span>Hoje</span><b>${soma("hoje")}</b></div><div class="kpi"><span>Ontem</span><b>${soma("ontem")}</b></div>
+        <div class="kpi"><span>Semana</span><b>${soma("semana")}</b></div><div class="kpi"><span>Mês</span><b>${soma("mes")}</b></div></div>
+      <div class="quando">Veículos atendidos. Atualizado em ${d.gerado_em}.</div></div>` +
+    d.unidades.map(u => `<div class="cartao"><div class="nome">${(VITRINE[u.unidade] || [u.unidade])[0]}</div>
+      <div class="kpis"><div class="kpi forte"><span>Hoje</span><b>${u.hoje}</b></div><div class="kpi"><span>Ontem</span><b>${u.ontem}</b></div>
+        <div class="kpi"><span>Semana</span><b>${u.semana}</b></div><div class="kpi"><span>Mês</span><b>${u.mes}</b></div></div>
+      <div class="quando">Tempo médio por veículo: ${minutos(u.media_s)}</div>
+      <div class="graf-t">Hoje, por hora</div>${barras(horas.map(h => u.por_hora[h] || 0), horas.map(h => h + "h"))}
+      <div class="graf-t">Últimos 14 dias</div>${barras(u.por_dia.map(x => x.n), u.por_dia.map(x => x.dia.slice(0, 2)))}
+      <div class="graf-t">Últimas 8 semanas (início da semana)</div>${barras(u.por_semana.map(x => x.n), u.por_semana.map(x => x.semana))}
+      <div class="graf-t">Últimos registros</div>
+      ${u.ultimos.length ? `<table class="registros"><thead><tr><th>Quando</th><th>Veículo</th><th class="num">Ficou</th></tr></thead><tbody>${
+        u.ultimos.map(x => `<tr><td>${x.quando}</td><td>${x.descricao || "Veículo"}</td><td class="num">${x.segundos != null ? minutos(x.segundos) : "na fila"}</td></tr>`).join("")}</tbody></table>`
+        : '<p class="nota" style="margin:4px 0 0">Nenhum veículo registrado ainda.</p>'}
+    </div>`).join("");
+  clearInterval(relogioDono);
+  relogioDono = setInterval(() => { if (!document.hidden && $d("t-dono").classList.contains("ativa")) carregarDono(); }, 60000);
+}
+if (convite) abrirDono();
 
 buscar();
 setInterval(buscar, 10000);
