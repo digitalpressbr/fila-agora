@@ -358,7 +358,7 @@ const TUNEL = `<svg class="tunel" viewBox="0 0 92 72" aria-hidden="true">
 const BOLHAS = [[26, 34, 9, 0], [44, 30, 12, 0.5], [62, 36, 8, 1.1], [36, 44, 7, 1.6], [56, 46, 10, 0.9]]
   .map(([x, b, d, s]) => `<i class="bolha" style="left:${x}px;bottom:${b}px;width:${d}px;height:${d}px;animation-delay:${s}s"></i>`).join("");
 
-let dados = [], erro = false, simulando = false, ultimaAssinatura = "", filasAntes = {};
+let carregou = false, dados = [], erro = false, simulando = false, ultimaAssinatura = "", filasAntes = {};
 
 function filaDe(u) {
   let f = Array.isArray(u.fila) ? u.fila : [];
@@ -381,7 +381,7 @@ function montarPista(u, antes) {
 function desenhar() {
   const lista = document.getElementById("lista"), dica = document.getElementById("dica");
   if (erro && !dados.length) { lista.innerHTML = '<p class="aviso">Sem conexão. Tentando de novo…</p>'; dica.hidden = true; ultimaAssinatura = ""; return; }
-  if (!dados.length) { lista.innerHTML = '<p class="aviso">Nenhuma unidade cadastrada.</p>'; dica.hidden = true; ultimaAssinatura = ""; return; }
+  if (!dados.length) { lista.innerHTML = '<p class="aviso">' + (carregou ? 'Nenhuma unidade cadastrada.' : 'Carregando…') + '</p>'; dica.hidden = true; ultimaAssinatura = ""; return; }
   const agora = Date.now();
   const itens = dados.map(u => {
     const idade = u.atualizado_em ? (agora - new Date(u.atualizado_em).getTime()) / 1000 : Infinity;
@@ -429,7 +429,7 @@ async function buscar() {
     const r = await fetch(URL_API, { headers: { apikey: CHAVE, Authorization: "Bearer " + CHAVE }, cache: "no-store" });
     if (!r.ok) throw new Error(r.status);
     const novo = await r.json();
-    if (!simulando) { dados = novo; erro = false; }
+    if (!simulando) { dados = novo; erro = false; carregou = true; }
   } catch (e) { erro = true; }
   desenhar();
 }
