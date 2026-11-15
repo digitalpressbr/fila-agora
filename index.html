@@ -126,6 +126,7 @@
     color: var(--parado); font-size: 0.62rem; font-weight: 600; letter-spacing: 0.01em; }
   .assinatura-fim img { width: 14px; height: 14px; border-radius: 50%; flex: none; opacity: 0.85; }
   .versao { text-align: center; color: var(--parado); font-size: 0.64rem; font-weight: 600; margin: 0 0 10px; letter-spacing: 0.02em; }
+  .dono-link[hidden] { display: none; }
   .dono-link { display: block; margin: 0 auto 4px; border: 0; background: none; font: inherit; font-size: 0.7rem; font-weight: 700; color: var(--parado); text-decoration: underline; cursor: pointer; padding: 10px; }
   .campo { display: block; margin-bottom: 12px; font-size: 0.8rem; font-weight: 700; color: var(--suave); }
   .campo input { display: block; width: 100%; margin-top: 6px; padding: 14px; border-radius: 14px; border: 1px solid var(--linha); background: var(--branco); font: inherit; font-size: 1rem; font-weight: 600; color: var(--texto); }
@@ -340,7 +341,7 @@
 
     <footer>Empresa e dados de locação e loja são <b>exemplos</b>. A fila é leitura real de câmera.</footer>
     <p class="versao" id="versao"></p>
-    <button class="dono-link" id="abrir-dono">Área do dono</button>
+    <button class="dono-link" id="abrir-dono" hidden>Área do dono</button>
     <p class="assinatura-fim" id="assinatura"><img src="digitalpressbr.png" alt="" width="14" height="14">Desenvolvido por Digital Press BR</p>
   </main>
 </div>
@@ -511,7 +512,7 @@ function desenhar() {
   itens.forEach(u => {
     const el = lista.querySelector(`[data-quando="${u.unidade}"]`);
     if (el) el.textContent = (simulando ? "Simulação" : u.atualizado_em ? "Atualizado " + faz(u.idade) : "Aguardando a primeira leitura")
-      + (u.paradas_hoje ? " · " + u.paradas_hoje + " " + plural(u.paradas_hoje, "atendimento hoje", "atendimentos hoje") : "");
+;
   });
 }
 async function buscar() {
@@ -772,7 +773,7 @@ if (navigator.serviceWorker) navigator.serviceWorker.addEventListener("message",
   if (e.data && e.data.tipo === "fila-aviso") mostrarChamada(e.data.titulo, e.data.corpo);
 });
 if (nativo) { try { pref.ligado = !!JSON.parse(nativo.estado()).ligado; guardar(); } catch (x) {} }
-const VERSAO_WEB = "1.8";
+const VERSAO_WEB = "1.9";
 (() => {
   let app = ""; try { if (nativo && nativo.versao) app = nativo.versao(); } catch (x) {}
   document.getElementById("versao").textContent = "Fila Agora · " + (nativo ? "aplicativo Android " + (app || "1.2 ou anterior") + " · " : "") + "tela " + VERSAO_WEB;
@@ -823,7 +824,8 @@ const barras = (valores, rotulos) => {
 async function carregarDono() {
   const r = await rpc("fa_painel", { p_senha: senhaDono }).catch(() => null);
   if (!r || !r.ok) { senhaDono = ""; await prepararEntrada(); $d("dono-erro").textContent = r ? "Senha incorreta." : "Sem conexão. Tente de novo."; return; }
-  try { localStorage.setItem("fila-dono", senhaDono); } catch (x) {}
+  try { localStorage.setItem("fila-dono", senhaDono); localStorage.setItem("fila-dono-entrada", "1"); } catch (x) {}
+  entradaDono = true;
   pintarModo();
   const d = await r.json();
   $d("dono-entrada").hidden = true; $d("dono-sair").hidden = false;
@@ -854,6 +856,22 @@ async function carregarDono() {
   clearInterval(relogioDono);
   relogioDono = setInterval(() => { if (!document.hidden && $d("t-dono").classList.contains("ativa")) carregarDono(); }, 60000);
 }
+// A entrada da área do dono é invisível para o público (versão da loja inclusive).
+const parametros = new URLSearchParams(location.search);
+let entradaDono = false; try { entradaDono = localStorage.getItem("fila-dono-entrada") === "1"; } catch (x) {}
+if (parametros.has("dono") || parametros.has("admin")) entradaDono = true;
+function liberarEntradaDono() {
+  entradaDono = true; try { localStorage.setItem("fila-dono-entrada", "1"); } catch (x) {}
+  pintarModo();
+}
+(() => {
+  let toques = 0, relogio;
+  $d("versao").addEventListener("click", () => {
+    toques++; clearTimeout(relogio); relogio = setTimeout(() => { toques = 0; }, 2500);
+    if (toques >= 5) { toques = 0; liberarEntradaDono(); toque("Entrada do dono liberada neste aparelho."); }
+  });
+})();
+if (!entradaDono && !senhaDono) rpc("fa_admin_estado", {}).then(r => r.json()).then(e => { if (e && e.primeiro_livre) { entradaDono = true; pintarModo(); } }).catch(() => {});
 // Dono logado: dois ícones discretos no topo. "Cliente" mostra o aplicativo exatamente como o público vê; "Dono" traz a aba do painel.
 let modo = "dono"; try { modo = localStorage.getItem("fila-modo") || "dono"; } catch (x) {}
 function pintarModo() {
@@ -862,7 +880,7 @@ function pintarModo() {
   $d("nav-dono").hidden = !dono;
   $d("ver-dono").setAttribute("aria-pressed", dono);
   $d("ver-cliente").setAttribute("aria-pressed", logado && !dono);
-  $d("abrir-dono").hidden = logado;                 // quem já entrou usa os ícones do topo
+  $d("abrir-dono").hidden = logado || !entradaDono;  // público nunca vê; dono logado usa os ícones do topo
 }
 function irPara(tela) {
   document.querySelectorAll("nav button").forEach(x => x.setAttribute("aria-selected", x.dataset.tela === tela));
