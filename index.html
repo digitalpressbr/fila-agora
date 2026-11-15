@@ -120,11 +120,11 @@
   .botao:active { transform: scale(0.98); }
   .botao:focus-visible, nav button:focus-visible { outline: 3px solid var(--ceu); outline-offset: 2px; }
   .info { background: var(--anil); color: var(--branco); border-radius: 20px; padding: 16px 18px; margin-top: 18px; font-size: 0.86rem; font-weight: 600; line-height: 1.7; }
-  .assinatura { display: flex; align-items: center; justify-content: center; gap: 9px; margin: 6px 0 4px; color: var(--suave); font-size: 0.66rem; font-weight: 600; line-height: 1.25; text-align: left; }
-  .assinatura img { width: 34px; height: 34px; border-radius: 50%; flex: none; }
-  .assinatura b { display: block; font-size: 0.78rem; font-weight: 800; color: var(--texto); }
+  .assinatura-fim { display: flex; align-items: center; justify-content: center; gap: 5px; margin: 2px 0 6px; white-space: nowrap;
+    color: var(--parado); font-size: 0.62rem; font-weight: 600; letter-spacing: 0.01em; }
+  .assinatura-fim img { width: 14px; height: 14px; border-radius: 50%; flex: none; opacity: 0.85; }
   .versao { text-align: center; color: var(--parado); font-size: 0.64rem; font-weight: 600; margin: 0 0 10px; letter-spacing: 0.02em; }
-  .dono-link { display: block; margin: 0 auto 12px; border: 0; background: none; font: inherit; font-size: 0.7rem; font-weight: 700; color: var(--parado); text-decoration: underline; cursor: pointer; padding: 10px; }
+  .dono-link { display: block; margin: 0 auto 4px; border: 0; background: none; font: inherit; font-size: 0.7rem; font-weight: 700; color: var(--parado); text-decoration: underline; cursor: pointer; padding: 10px; }
   .campo { display: block; margin-bottom: 12px; font-size: 0.8rem; font-weight: 700; color: var(--suave); }
   .campo input { display: block; width: 100%; margin-top: 6px; padding: 14px; border-radius: 14px; border: 1px solid var(--linha); background: var(--branco); font: inherit; font-size: 1rem; font-weight: 600; color: var(--texto); }
   .erro { color: var(--cheio); font-size: 0.82rem; font-weight: 700; margin: 0 0 10px; min-height: 1.1em; }
@@ -337,9 +337,9 @@
     </section>
 
     <footer>Empresa e dados de locação e loja são <b>exemplos</b>. A fila é leitura real de câmera.</footer>
-    <div class="assinatura" id="assinatura"><img src="digitalpressbr.png" alt="" width="34" height="34"><span>Desenvolvido por<b>Digital Press BR</b></span></div>
     <p class="versao" id="versao"></p>
     <button class="dono-link" id="abrir-dono">Área do dono</button>
+    <p class="assinatura-fim" id="assinatura"><img src="digitalpressbr.png" alt="" width="14" height="14">Desenvolvido por Digital Press BR</p>
   </main>
 </div>
 
@@ -760,7 +760,7 @@ if (navigator.serviceWorker) navigator.serviceWorker.addEventListener("message",
   if (e.data && e.data.tipo === "fila-aviso") mostrarChamada(e.data.titulo, e.data.corpo);
 });
 if (nativo) { try { pref.ligado = !!JSON.parse(nativo.estado()).ligado; guardar(); } catch (x) {} }
-const VERSAO_WEB = "1.5";
+const VERSAO_WEB = "1.6";
 (() => {
   let app = ""; try { if (nativo && nativo.versao) app = nativo.versao(); } catch (x) {}
   document.getElementById("versao").textContent = "Fila Agora · " + (nativo ? "aplicativo Android " + (app || "1.2 ou anterior") + " · " : "") + "tela " + VERSAO_WEB;
