@@ -1,11 +1,11 @@
 {
- "name": "Fila Agora",
+ "name": "Onda Azul · Fila Agora",
  "short_name": "Fila Agora",
  "start_url": "./",
  "scope": "./",
  "display": "standalone",
- "background_color": "#0b1f2a",
- "theme_color": "#0b1f2a",
+ "background_color": "#23288f",
+ "theme_color": "#23288f",
  "lang": "pt-BR",
  "icons": [
   {

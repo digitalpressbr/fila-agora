@@ -3,67 +3,181 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b1f2a">
-<title>Fila Agora</title>
+<meta name="theme-color" content="#23288f">
+<title>Onda Azul · Fila Agora</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --fundo: #0b1f2a; --painel: #12303f; --linha: #1f4558; --texto: #eef6f9; --suave: #9db7c3;
-    --livre: #3ddc97; --medio: #ffc857; --cheio: #ff6b6b; --parado: #6b8794; --marca: #4fc3f7;
+    --anil: #23288f; --anil-escuro: #171b6b; --ceu: #38b6ea; --ceu-claro: #d9f1fc; --branco: #ffffff;
+    --fundo: #f3f7fc; --texto: #171b4d; --suave: #5b6390; --linha: #dbe4f3;
+    --livre: #12a86b; --medio: #e59a00; --cheio: #e0453a; --parado: #8a93b5;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--fundo); color: var(--texto);
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
-  body { min-height: 100dvh; padding: max(20px, env(safe-area-inset-top)) 16px 28px; }
-  main { max-width: 520px; margin: 0 auto; }
-  header { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
-  header svg { width: 40px; height: 40px; flex: none; }
-  h1 { font-size: 1.5rem; margin: 0; letter-spacing: -0.02em; }
-  .sub { color: var(--suave); margin: 0 0 20px; font-size: 0.95rem; }
-  .dica { background: linear-gradient(135deg, #14506a, #12303f); border: 1px solid var(--linha); border-radius: 16px;
-    padding: 14px 16px; margin-bottom: 16px; font-size: 1rem; }
-  .dica b { color: var(--livre); }
-  .cartao { background: var(--painel); border: 1px solid var(--linha); border-radius: 20px; padding: 18px;
-    margin-bottom: 14px; position: relative; overflow: hidden; }
-  .cartao::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 6px; background: var(--cor, var(--parado)); }
-  .topo { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-  .nome { font-size: 1.15rem; font-weight: 650; }
-  .selo { font-size: 0.8rem; font-weight: 700; padding: 5px 11px; border-radius: 999px;
-    color: #06202b; background: var(--cor, var(--parado)); white-space: nowrap; }
-  .meio { display: flex; align-items: baseline; gap: 10px; margin: 14px 0 4px; }
-  .numero { font-size: 4.2rem; font-weight: 800; line-height: 1; letter-spacing: -0.04em;
-    font-variant-numeric: tabular-nums; color: var(--cor, var(--parado)); }
-  .unid { color: var(--suave); font-size: 1.05rem; }
+    font-family: Montserrat, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  body { min-height: 100dvh; padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+  .moldura { max-width: 520px; margin: 0 auto; }
+
+  /* topo com onda */
+  .topo { background: var(--anil); color: var(--branco); padding: max(22px, env(safe-area-inset-top)) 20px 46px; position: relative; overflow: hidden; }
+  .topo::before { content: ""; position: absolute; right: -40px; top: -60px; width: 220px; height: 220px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(56,182,234,0.55), rgba(56,182,234,0) 70%); }
+  .marca { display: flex; align-items: center; gap: 12px; position: relative; }
+  .marca svg { width: 52px; height: 52px; flex: none; }
+  .marca b { display: block; font-size: 1.55rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+  .marca span { display: block; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.34em; text-transform: uppercase; opacity: 0.85; margin-top: 5px; }
+  .chamada { position: relative; margin: 22px 0 0; font-size: 1.32rem; font-weight: 800; line-height: 1.2; text-wrap: balance; }
+  .chamada em { font-style: normal; color: #8fdcff; }
+  .onda { position: absolute; left: 0; right: 0; bottom: -1px; width: 100%; height: 44px; display: block; }
+
+  main { padding: 6px 16px 0; }
+  .tela { display: none; }
+  .tela.ativa { display: block; animation: entra 0.25s ease-out; }
+  @keyframes entra { from { opacity: 0; transform: translateY(6px); } }
+  h2 { font-size: 1.12rem; font-weight: 800; margin: 18px 4px 12px; }
+  .nota { color: var(--suave); font-size: 0.84rem; font-weight: 500; margin: -6px 4px 14px; line-height: 1.45; }
+
+  /* fila */
+  .dica { background: var(--ceu-claro); border-radius: 16px; padding: 13px 16px; margin: 14px 0; font-weight: 600; font-size: 0.95rem; }
+  .dica b { color: var(--anil); font-weight: 800; }
+  .cartao { background: var(--branco); border: 1px solid var(--linha); border-radius: 22px; padding: 18px; margin-bottom: 14px;
+    box-shadow: 0 6px 18px rgba(35,40,143,0.07); }
+  .linha1 { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .nome { font-size: 1.08rem; font-weight: 800; }
+  .ender { color: var(--suave); font-size: 0.8rem; font-weight: 500; margin-top: 3px; }
+  .selo { font-size: 0.74rem; font-weight: 800; padding: 6px 12px; border-radius: 999px; color: var(--branco);
+    background: var(--cor, var(--parado)); white-space: nowrap; text-transform: uppercase; letter-spacing: 0.04em; }
+  .meio { display: flex; align-items: center; gap: 14px; margin: 16px 0 6px; }
+  .numero { font-size: 4.4rem; font-weight: 800; line-height: 0.9; letter-spacing: -0.05em; font-variant-numeric: tabular-nums;
+    color: var(--cor, var(--parado)); min-width: 1.1ch; }
+  .unid { font-size: 0.98rem; font-weight: 600; color: var(--suave); line-height: 1.3; }
+  .carrinhos { display: flex; gap: 5px; margin-top: 7px; min-height: 18px; }
+  .carrinhos i { width: 26px; height: 14px; border-radius: 5px 8px 3px 3px; background: var(--cor, var(--parado)); opacity: 0.9; }
   .dados { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
-  .dado { background: rgba(255,255,255,0.04); border-radius: 12px; padding: 10px 12px; }
-  .dado span { display: block; color: var(--suave); font-size: 0.78rem; margin-bottom: 2px; }
-  .dado strong { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
-  .quando { color: var(--suave); font-size: 0.82rem; margin-top: 12px; display: flex; align-items: center; gap: 7px; }
-  .ponto { width: 8px; height: 8px; border-radius: 50%; background: var(--cor, var(--parado)); flex: none; }
+  .dado { background: var(--fundo); border-radius: 14px; padding: 11px 13px; }
+  .dado span { display: block; color: var(--suave); font-size: 0.72rem; font-weight: 600; margin-bottom: 3px; }
+  .dado strong { font-size: 1rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .quando { color: var(--suave); font-size: 0.78rem; font-weight: 600; margin-top: 13px; display: flex; align-items: center; gap: 7px; }
+  .ponto { width: 9px; height: 9px; border-radius: 50%; background: var(--cor, var(--parado)); flex: none; }
   .vivo .ponto { animation: pulso 2s ease-in-out infinite; }
-  @keyframes pulso { 50% { opacity: 0.35; } }
-  @media (prefers-reduced-motion: reduce) { .vivo .ponto { animation: none; } }
-  .aviso { color: var(--suave); text-align: center; padding: 40px 10px; }
-  footer { color: var(--parado); font-size: 0.78rem; text-align: center; margin-top: 22px; line-height: 1.5; }
+  @keyframes pulso { 50% { opacity: 0.3; } }
+  .aviso { color: var(--suave); text-align: center; padding: 40px 10px; font-weight: 600; }
+
+  /* serviços */
+  .grade { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .servico { border-radius: 20px; padding: 16px 14px 14px; color: var(--branco); min-height: 150px; position: relative; overflow: hidden;
+    background: linear-gradient(160deg, var(--anil), var(--anil-escuro)); display: flex; flex-direction: column; justify-content: flex-end; }
+  .servico:nth-child(even) { background: linear-gradient(160deg, #2a8fd0, var(--anil)); }
+  .servico svg { position: absolute; right: -8px; top: -6px; width: 92px; height: 92px; opacity: 0.9; }
+  .servico b { font-size: 1.02rem; font-weight: 800; line-height: 1.15; position: relative; }
+  .servico small { font-size: 0.74rem; font-weight: 500; opacity: 0.88; margin-top: 5px; line-height: 1.35; position: relative; }
+
+  /* locação e loja */
+  .item { background: var(--branco); border: 1px solid var(--linha); border-radius: 20px; padding: 14px; margin-bottom: 12px;
+    display: flex; gap: 14px; align-items: center; box-shadow: 0 6px 18px rgba(35,40,143,0.06); }
+  .item .foto { width: 92px; height: 78px; border-radius: 14px; background: var(--ceu-claro); flex: none; display: grid; place-items: center; }
+  .item .foto svg { width: 70px; height: 56px; }
+  .item b { font-size: 0.98rem; font-weight: 800; display: block; }
+  .item p { margin: 4px 0 8px; color: var(--suave); font-size: 0.8rem; font-weight: 500; line-height: 1.35; }
+  .tag { display: inline-block; font-size: 0.7rem; font-weight: 800; padding: 4px 9px; border-radius: 999px; }
+  .tag.ok { background: #dff5ea; color: #0a7a4c; } .tag.nao { background: #fde5e2; color: #b3261c; } .tag.breve { background: var(--ceu-claro); color: var(--anil); }
+  .botao { display: block; width: 100%; border: 0; border-radius: 16px; padding: 15px; margin-top: 6px; font: inherit; font-weight: 800; font-size: 0.98rem;
+    color: var(--branco); background: var(--anil); cursor: pointer; text-align: center; }
+  .botao:active { transform: scale(0.98); }
+  .botao:focus-visible, nav button:focus-visible { outline: 3px solid var(--ceu); outline-offset: 2px; }
+  .info { background: var(--anil); color: var(--branco); border-radius: 20px; padding: 16px 18px; margin-top: 18px; font-size: 0.86rem; font-weight: 600; line-height: 1.7; }
+  footer { color: var(--parado); font-size: 0.72rem; font-weight: 600; text-align: center; margin: 22px 10px 8px; line-height: 1.6; }
+  footer b { color: var(--anil); }
+
+  /* barra inferior */
+  nav { position: fixed; left: 0; right: 0; bottom: 0; background: var(--branco); border-top: 1px solid var(--linha);
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); z-index: 5; }
+  nav div { max-width: 520px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  nav button { border: 0; background: none; font: inherit; font-size: 0.7rem; font-weight: 700; color: var(--parado); padding: 6px 2px 4px;
+    border-radius: 14px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  nav button svg { width: 24px; height: 24px; }
+  nav button[aria-selected="true"] { color: var(--anil); background: var(--ceu-claro); }
+  .aviso-toque { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--anil-escuro); color: #fff;
+    padding: 11px 16px; border-radius: 14px; font-size: 0.82rem; font-weight: 600; max-width: 88vw; text-align: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 9; }
+  .aviso-toque.mostra { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .vivo .ponto, .tela.ativa { animation: none; } }
 </style>
 </head>
 <body>
-<main>
-  <header>
-    <svg viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="12" fill="#4fc3f7"/>
-      <path d="M10 30v-5l3-8a3 3 0 0 1 3-2h16a3 3 0 0 1 3 2l3 8v5a2 2 0 0 1-2 2h-1a3 3 0 0 1-6 0H19a3 3 0 0 1-6 0h-1a2 2 0 0 1-2-2zm5-6h18l-2-6H17z" fill="#0b1f2a"/></svg>
-    <h1>Fila Agora</h1>
+<div class="moldura">
+  <header class="topo">
+    <div class="marca">
+      <svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="26" fill="#fff"/>
+        <path d="M9 30c4-6 8-6 12 0s8 6 12 0 8-6 10-3" fill="none" stroke="#38b6ea" stroke-width="4.5" stroke-linecap="round"/>
+        <path d="M9 21c4-6 8-6 12 0s8 6 12 0 8-6 10-3" fill="none" stroke="#23288f" stroke-width="4.5" stroke-linecap="round"/>
+        <circle cx="39" cy="12" r="3" fill="#38b6ea"/><circle cx="44" cy="19" r="1.8" fill="#38b6ea"/></svg>
+      <div><b>Onda Azul</b><span>lava rápido</span></div>
+    </div>
+    <p class="chamada">Veja a fila <em>antes de sair de casa</em>.</p>
+    <svg class="onda" viewBox="0 0 520 44" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 22c60-26 120-26 190-6s140 26 210 4 90-18 120-10v34H0z" fill="#38b6ea"/>
+      <path d="M0 30c70-22 130-18 200-2s130 20 200 2 90-12 120-6v20H0z" fill="#f3f7fc"/></svg>
   </header>
-  <p class="sub">Veja a fila antes de sair de casa.</p>
-  <div id="dica" class="dica" hidden></div>
-  <div id="lista"><p class="aviso">Carregando…</p></div>
-  <footer>Contagem automática por câmera, sem leitura de placa e sem guardar imagem.<br>Versão de demonstração.</footer>
-</main>
+
+  <main>
+    <section class="tela ativa" id="t-fila">
+      <div id="dica" class="dica" hidden></div>
+      <div id="lista"><p class="aviso">Carregando…</p></div>
+      <div class="info">Todos os dias, das 8h às 18h30.<br>A contagem é feita por câmera, sem ler placa e sem guardar imagem.</div>
+    </section>
+
+    <section class="tela" id="t-servicos">
+      <h2>Como lavamos seu carro</h2>
+      <div class="grade">
+        <div class="servico"><svg viewBox="0 0 92 92" aria-hidden="true"><g fill="none" stroke="#8fdcff" stroke-width="5" stroke-linecap="round"><path d="M30 14v64M46 8v76M62 14v64"/></g></svg><b>Lavagem</b><small>Escovas automáticas, carro limpo em poucos minutos.</small></div>
+        <div class="servico"><svg viewBox="0 0 92 92" aria-hidden="true"><g fill="#fff" opacity="0.85"><circle cx="34" cy="34" r="16"/><circle cx="58" cy="28" r="11"/><circle cx="56" cy="52" r="14"/><circle cx="30" cy="60" r="8"/></g></svg><b>Banho de espuma</b><small>Espuma ativa que solta a sujeira sem riscar.</small></div>
+        <div class="servico"><svg viewBox="0 0 92 92" aria-hidden="true"><g fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity="0.85"><path d="M18 32c14-10 26 10 40 0s14-6 18-2M18 50c14-10 26 10 40 0s14-6 18-2M18 68c14-10 26 10 40 0s14-6 18-2"/></g></svg><b>Secagem</b><small>Acabamento à mão com toalha de microfibra.</small></div>
+        <div class="servico"><svg viewBox="0 0 92 92" aria-hidden="true"><circle cx="46" cy="46" r="30" fill="none" stroke="#0f1250" stroke-width="12"/><circle cx="46" cy="46" r="12" fill="#8fdcff"/></svg><b>Pretinho</b><small>Brilho nos pneus para fechar o serviço.</small></div>
+      </div>
+      <p class="nota" style="margin-top:16px">Preços e pacotes entram aqui, definidos pelo dono da unidade.</p>
+    </section>
+
+    <section class="tela" id="t-locacao">
+      <h2>Locação de carretinhas</h2>
+      <p class="nota">Veja o que está disponível e reserve pelo WhatsApp.</p>
+      <div id="carretas"></div>
+      <button class="botao" data-demo="Na versão final, este botão abre o WhatsApp da unidade com a reserva já escrita.">Reservar pelo WhatsApp</button>
+    </section>
+
+    <section class="tela" id="t-loja">
+      <h2>Loja <span class="tag breve">em breve</span></h2>
+      <p class="nota">Produtos para cuidar do carro em casa, com retirada na unidade.</p>
+      <div id="produtos"></div>
+    </section>
+
+    <footer>Empresa e dados de locação e loja são <b>exemplos</b>. A fila é leitura real de câmera.<br>Feito com <b>Fila Agora</b>.</footer>
+  </main>
+</div>
+
+<nav aria-label="Seções"><div role="tablist">
+  <button role="tab" aria-selected="true" data-tela="t-fila"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 15v-3l2-5a2 2 0 0 1 2-1h10a2 2 0 0 1 2 1l2 5v3a1 1 0 0 1-1 1h-1a2 2 0 0 1-4 0H9a2 2 0 0 1-4 0H4a1 1 0 0 1-1-1zm3-4h12l-1.3-3.4H7.3z"/></svg>Fila</button>
+  <button role="tab" aria-selected="false" data-tela="t-servicos"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c3 4.5 6 7.800 6 11.500A6 6 0 0 1 6 13.500C6 9.800 9 6.500 12 2z"/></svg>Serviços</button>
+  <button role="tab" aria-selected="false" data-tela="t-locacao"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 7h13v8H9.900a2.500 2.500 0 0 0-4.800 0H2zm15 6h5v2h-5zM7.500 18a1.500 1.500 0 1 1 0-3 1.500 1.500 0 0 1 0 3z"/></svg>Locação</button>
+  <button role="tab" aria-selected="false" data-tela="t-loja"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 7V6a6 6 0 0 1 12 0v1h3l-1.500 14h-15L3 7zm2 0h8V6a4 4 0 0 0-8 0z"/></svg>Loja</button>
+</div></nav>
+<div class="aviso-toque" id="toque" role="status"></div>
+
 <script>
 const URL_API = "https://hadbqjgfqfokutltiqra.supabase.co/rest/v1/fa_status?select=*&order=ordem";
 const CHAVE = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhZGJxamdmcWZva3V0bHRpcXJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk0NTQyMTMsImV4cCI6MjEwNTAzMDIxM30.LnEtw-GTzmjioatG0O1VVztxkhVs8szXCgpJFt1ef0w";
 const VELHO = 120;              // segundos sem foto nova: deixa de mostrar o número
+// Nome e endereço de vitrine de cada câmera (empresa de exemplo).
+const VITRINE = { "unidade-1": ["Unidade Centro", "Av. Principal, 260"], "unidade-2": ["Unidade Avenida", "Av. das Palmeiras, 635"] };
+const CARRETAS = [
+  ["Carretinha aberta 2,0 m", "Para mudança pequena, móveis e material de obra.", 2, "aberta"],
+  ["Carretinha baú", "Carga protegida de chuva e poeira.", 1, "bau"],
+  ["Reboque para moto", "Leva até 2 motos, com rampa.", 0, "moto"],
+];
+const PRODUTOS = [["Shampoo automotivo", "Lava sem tirar a cera."], ["Cera líquida", "Brilho e proteção por semanas."], ["Pretinho para pneus", "O mesmo usado na unidade."], ["Toalha de microfibra", "Seca sem riscar a pintura."]];
 let dados = [], erro = false;
 
 const plural = (n, s, p) => n === 1 ? s : p;
@@ -79,7 +193,7 @@ function faz(seg) {
   return "há mais de " + Math.floor(seg / 3600) + " h";
 }
 function nivel(n) {
-  if (n === 0) return ["Livre", "var(--livre)"];
+  if (n === 0) return ["Sem fila", "var(--livre)"];
   if (n <= 2) return ["Fila pequena", "var(--medio)"];
   return ["Cheio", "var(--cheio)"];
 }
@@ -90,28 +204,30 @@ function desenhar() {
   const agora = Date.now();
   const itens = dados.map(u => {
     const idade = u.atualizado_em ? (agora - new Date(u.atualizado_em).getTime()) / 1000 : Infinity;
-    return { ...u, idade, vivo: idade <= VELHO && u.veiculos != null };
+    const [nome, ender] = VITRINE[u.unidade] || [u.nome, ""];
+    return { ...u, nome, ender, idade, vivo: idade <= VELHO && u.veiculos != null };
   });
   lista.innerHTML = itens.map(u => {
     const [rotulo, cor] = u.vivo ? nivel(u.veiculos) : ["Sem leitura", "var(--parado)"];
     const espera = u.vivo && u.permanencia_media_s != null ? minutos(u.veiculos * u.permanencia_media_s) : "—";
-    return `<section class="cartao ${u.vivo ? "vivo" : ""}" style="--cor:${cor}">
-      <div class="topo"><div class="nome">${u.nome}</div><div class="selo">${rotulo}</div></div>
+    const carrinhos = u.vivo ? "<i></i>".repeat(Math.min(u.veiculos, 8)) : "";
+    return `<article class="cartao ${u.vivo ? "vivo" : ""}" style="--cor:${cor}">
+      <div class="linha1"><div><div class="nome">${u.nome}</div><div class="ender">${u.ender}</div></div><div class="selo">${rotulo}</div></div>
       <div class="meio"><div class="numero">${u.vivo ? u.veiculos : "–"}</div>
-        <div class="unid">${u.vivo ? plural(u.veiculos, "veículo na fila", "veículos na fila") : "sem leitura no momento"}</div></div>
+        <div><div class="unid">${u.vivo ? plural(u.veiculos, "veículo na fila", "veículos na fila") : "sem leitura no momento"}</div><div class="carrinhos">${carrinhos}</div></div></div>
       <div class="dados">
         <div class="dado"><span>Espera estimada</span><strong>${u.vivo && u.veiculos === 0 ? "sem espera" : espera}</strong></div>
         <div class="dado"><span>Tempo médio por veículo</span><strong>${minutos(u.permanencia_media_s)}</strong></div>
       </div>
       <div class="quando"><i class="ponto"></i>${u.atualizado_em ? "Atualizado " + faz(u.idade) : "Aguardando a primeira leitura"}
         ${u.paradas_hoje ? " · " + u.paradas_hoje + " " + plural(u.paradas_hoje, "atendimento hoje", "atendimentos hoje") : ""}</div>
-    </section>`;
+    </article>`;
   }).join("");
   const vivos = itens.filter(u => u.vivo);
   if (vivos.length > 1) {
     const melhor = vivos.reduce((a, b) => b.veiculos < a.veiculos ? b : a);
     const empate = vivos.every(u => u.veiculos === melhor.veiculos);
-    dica.innerHTML = empate ? "As unidades estão iguais agora." : `Melhor opção agora: <b>${melhor.nome}</b>.`;
+    dica.innerHTML = empate ? "As duas unidades estão iguais agora. Vá na mais perto." : `Melhor opção agora: <b>${melhor.nome}</b>.`;
     dica.hidden = false;
   } else dica.hidden = true;
 }
@@ -123,6 +239,29 @@ async function buscar() {
   } catch (e) { erro = true; }
   desenhar();
 }
+
+const DESENHO = {
+  aberta: '<path d="M6 22h44v14H6z" fill="#23288f"/><path d="M50 30h14" stroke="#23288f" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="40" r="7" fill="#171b4d"/><circle cx="24" cy="40" r="3" fill="#38b6ea"/>',
+  bau: '<path d="M6 8h44v28H6z" fill="#23288f"/><path d="M14 8v28M42 8v28" stroke="#38b6ea" stroke-width="2"/><path d="M50 30h14" stroke="#23288f" stroke-width="4" stroke-linecap="round"/><circle cx="24" cy="40" r="7" fill="#171b4d"/><circle cx="24" cy="40" r="3" fill="#38b6ea"/>',
+  moto: '<path d="M4 30h48v6H4z" fill="#23288f"/><path d="M52 32h12" stroke="#23288f" stroke-width="4" stroke-linecap="round"/><circle cx="18" cy="40" r="6" fill="#171b4d"/><circle cx="38" cy="40" r="6" fill="#171b4d"/><path d="M14 28l8-12h10l8 12" fill="none" stroke="#38b6ea" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>',
+};
+document.getElementById("carretas").innerHTML = CARRETAS.map(([n, d, q, k]) =>
+  `<div class="item"><div class="foto"><svg viewBox="0 0 70 50" aria-hidden="true">${DESENHO[k]}</svg></div><div><b>${n}</b><p>${d}</p>
+   <span class="tag ${q ? "ok" : "nao"}">${q ? q + " " + plural(q, "disponível", "disponíveis") + " hoje" : "todas alugadas hoje"}</span></div></div>`).join("");
+document.getElementById("produtos").innerHTML = PRODUTOS.map(([n, d]) =>
+  `<div class="item"><div class="foto"><svg viewBox="0 0 70 50" aria-hidden="true"><rect x="24" y="14" width="22" height="32" rx="5" fill="#23288f"/><rect x="29" y="6" width="12" height="9" rx="2" fill="#38b6ea"/><rect x="28" y="24" width="14" height="12" rx="2" fill="#fff"/></svg></div><div><b>${n}</b><p>${d}</p><span class="tag breve">em breve</span></div></div>`).join("");
+
+document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll("nav button").forEach(x => x.setAttribute("aria-selected", x === b));
+  document.querySelectorAll(".tela").forEach(t => t.classList.toggle("ativa", t.id === b.dataset.tela));
+  window.scrollTo({ top: 0 });
+}));
+let relogio;
+document.querySelectorAll("[data-demo]").forEach(b => b.addEventListener("click", () => {
+  const t = document.getElementById("toque"); t.textContent = b.dataset.demo; t.classList.add("mostra");
+  clearTimeout(relogio); relogio = setTimeout(() => t.classList.remove("mostra"), 3500);
+}));
+
 buscar();
 setInterval(buscar, 10000);
 setInterval(desenhar, 1000);
