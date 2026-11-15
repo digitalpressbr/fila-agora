@@ -647,6 +647,7 @@ document.getElementById("al-ligar").addEventListener("click", async () => {
   buzina.play().then(() => { buzina.pause(); buzina.currentTime = 0; }).catch(() => {});   // libera o som neste toque
   pref.ligado = !pref.ligado; guardar(); pintarAlertas();
   Object.keys(estadoAlerta).forEach(k => delete estadoAlerta[k]);
+  if (pref.ligado) avisarJa();
   if (aplicarNoCelular()) { toque(pref.ligado ? "Pronto. A buzina toca mesmo com o aplicativo fechado, pelas próximas 4 horas." : "Alertas desligados."); return; }
   if (pref.ligado) {
     const r = await inscreverPush().catch(() => "erro");
@@ -671,7 +672,21 @@ if (nativo) {
   b.addEventListener("click", () => { nativo.testar(); toque("Saia do aplicativo agora: em 4 segundos a chamada aparece com a buzina."); });
 }
 
+let ultimosItens = [], relogioJa;
+// Ativou com a unidade já no ponto pedido: avisa em 5 segundos, sem esperar a fila subir e cair de novo.
+function avisarJa() {
+  clearTimeout(relogioJa);
+  relogioJa = setTimeout(() => {
+    if (!pref.ligado || document.visibilityState !== "visible") return;
+    const u = ultimosItens.find(x => pref.unidades.includes(x.unidade) && x.vivo && x.veiculos <= pref.limite);
+    if (!u) return;
+    estadoAlerta[u.unidade] = true;
+    mostrarChamada(u.veiculos === 0 ? `${u.nome} sem fila!` : `Fila pequena na ${u.nome}`,
+      u.veiculos === 0 ? "Pista livre agora. Bom momento para ir." : `${u.veiculos} ${plural(u.veiculos, "veículo", "veículos")} na fila agora.`);
+  }, 5000);
+}
 function avaliarAlertas(itens) {
+  ultimosItens = itens;
   if (!pref.ligado) return;
   itens.forEach(u => {
     if (!pref.unidades.includes(u.unidade)) return;
