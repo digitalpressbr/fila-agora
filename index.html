@@ -146,13 +146,24 @@
   .registros .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .dono-topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 18px 4px 4px; }
   .dono-topo h2 { margin: 0; } .dono-topo button { border: 0; border-radius: 12px; padding: 10px 14px; min-height: 44px; font: inherit; font-weight: 800; font-size: 0.8rem; background: var(--ceu-claro); color: var(--anil); cursor: pointer; }
+  html { overscroll-behavior-y: contain; }
+  .puxar { height: 0; overflow: hidden; background: var(--anil-escuro); color: #c9d4ff; font-size: 0.78rem; font-weight: 700;
+    display: flex; align-items: flex-end; justify-content: center; padding-bottom: 0; transition: height 0.15s; }
+  .puxar.ativo { padding-bottom: 8px; }
+  .trocar { position: absolute; right: 14px; top: max(18px, env(safe-area-inset-top)); display: flex; gap: 6px; z-index: 2; }
+  .trocar[hidden] { display: none; }
+  .trocar button { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.28); background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.7); display: grid; place-items: center; cursor: pointer; padding: 0; }
+  .trocar button svg { width: 17px; height: 17px; }
+  .trocar button[aria-pressed="true"] { background: #fff; color: var(--anil); border-color: #fff; }
+  nav button[hidden] { display: none; }
   footer { color: var(--parado); font-size: 0.72rem; font-weight: 600; text-align: center; margin: 22px 10px 8px; line-height: 1.6; }
   footer b { color: var(--anil); }
 
   /* barra inferior */
   nav { position: fixed; left: 0; right: 0; bottom: 0; background: var(--branco); border-top: 1px solid var(--linha);
     padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); z-index: 5; }
-  nav div { max-width: 520px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  nav div { max-width: 520px; margin: 0 auto; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; }
   nav button { border: 0; background: none; font: inherit; font-size: 0.7rem; font-weight: 700; color: var(--parado); padding: 6px 2px 4px;
     border-radius: 14px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
   nav button svg { width: 24px; height: 24px; }
@@ -237,7 +248,12 @@
 </head>
 <body>
 <div class="moldura">
+  <div class="puxar" id="puxar" aria-hidden="true"></div>
   <header class="topo">
+    <div class="trocar" id="trocar" hidden>
+      <button id="ver-cliente" aria-pressed="false" aria-label="Ver como o cliente vê" title="Ver como o cliente vê"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-4 0-8 2-8 5v1h16v-1c0-3-4-5-8-5z"/></svg></button>
+      <button id="ver-dono" aria-pressed="false" aria-label="Área do dono" title="Área do dono"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l8 3v6c0 5-3.400 9.300-8 11-4.600-1.700-8-6-8-11V5zm0 5a2.500 2.500 0 0 0-1 4.800V16h2v-4.200A2.500 2.500 0 0 0 12 7z"/></svg></button>
+    </div>
     <div class="marca">
       <svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="26" fill="#fff"/>
         <path d="M9 30c4-6 8-6 12 0s8 6 12 0 8-6 10-3" fill="none" stroke="#38b6ea" stroke-width="4.5" stroke-linecap="round"/>
@@ -332,6 +348,7 @@
   <button role="tab" aria-selected="false" data-tela="t-servicos"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c3 4.5 6 7.800 6 11.500A6 6 0 0 1 6 13.500C6 9.800 9 6.500 12 2z"/></svg>Serviços</button>
   <button role="tab" aria-selected="false" data-tela="t-locacao"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 7h13v8H9.900a2.500 2.500 0 0 0-4.800 0H2zm15 6h5v2h-5zM7.500 18a1.500 1.500 0 1 1 0-3 1.500 1.500 0 0 1 0 3z"/></svg>Locação</button>
   <button role="tab" aria-selected="false" data-tela="t-loja"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 7V6a6 6 0 0 1 12 0v1h3l-1.500 14h-15L3 7zm2 0h8V6a4 4 0 0 0-8 0z"/></svg>Loja</button>
+  <button role="tab" aria-selected="false" data-tela="t-dono" id="nav-dono" hidden><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 20V10h3v10zm6.500 0V4h3v16zM17 20v-7h3v7z"/></svg>Dono</button>
 </div></nav>
 <div class="aviso-toque" id="toque" role="status"></div>
 
@@ -743,7 +760,7 @@ if (navigator.serviceWorker) navigator.serviceWorker.addEventListener("message",
   if (e.data && e.data.tipo === "fila-aviso") mostrarChamada(e.data.titulo, e.data.corpo);
 });
 if (nativo) { try { pref.ligado = !!JSON.parse(nativo.estado()).ligado; guardar(); } catch (x) {} }
-const VERSAO_WEB = "1.4";
+const VERSAO_WEB = "1.5";
 (() => {
   let app = ""; try { if (nativo && nativo.versao) app = nativo.versao(); } catch (x) {}
   document.getElementById("versao").textContent = "Fila Agora · " + (nativo ? "aplicativo Android " + (app || "1.2 ou anterior") + " · " : "") + "tela " + VERSAO_WEB;
@@ -753,13 +770,11 @@ conferirPermissoes();
 
 // ---- área do dono: veículos por hora, dia, semana e mês ----
 const conviteDono = new URLSearchParams(location.search).get("admin");
-let senhaDono = ""; try { senhaDono = sessionStorage.getItem("fila-dono") || ""; } catch (x) {}
+let senhaDono = ""; try { senhaDono = localStorage.getItem("fila-dono") || ""; } catch (x) {}
 let relogioDono;
 const $d = id => document.getElementById(id);
 function abrirDono() {
-  document.querySelectorAll("nav button").forEach(x => x.setAttribute("aria-selected", "false"));
-  document.querySelectorAll(".tela").forEach(t => t.classList.toggle("ativa", t.id === "t-dono"));
-  window.scrollTo({ top: 0 });
+  irPara("t-dono");
   if (senhaDono) carregarDono(); else prepararEntrada();
 }
 async function prepararEntrada() {
@@ -784,7 +799,7 @@ $d("dono-entrar").addEventListener("click", async () => {
   }
   senhaDono = s1; carregarDono();
 });
-$d("dono-sair").addEventListener("click", () => { senhaDono = ""; try { sessionStorage.removeItem("fila-dono"); } catch (x) {} clearInterval(relogioDono); $d("dono-senha").value = ""; prepararEntrada(); });
+$d("dono-sair").addEventListener("click", () => { senhaDono = ""; try { localStorage.removeItem("fila-dono"); } catch (x) {} pintarModo(); clearInterval(relogioDono); $d("dono-senha").value = ""; prepararEntrada(); });
 $d("abrir-dono").addEventListener("click", abrirDono);
 
 const barras = (valores, rotulos) => {
@@ -795,7 +810,8 @@ const barras = (valores, rotulos) => {
 async function carregarDono() {
   const r = await rpc("fa_painel", { p_senha: senhaDono }).catch(() => null);
   if (!r || !r.ok) { senhaDono = ""; await prepararEntrada(); $d("dono-erro").textContent = r ? "Senha incorreta." : "Sem conexão. Tente de novo."; return; }
-  try { sessionStorage.setItem("fila-dono", senhaDono); } catch (x) {}
+  try { localStorage.setItem("fila-dono", senhaDono); } catch (x) {}
+  pintarModo();
   const d = await r.json();
   $d("dono-entrada").hidden = true; $d("dono-sair").hidden = false;
   const soma = k => d.unidades.reduce((t, u) => t + u[k], 0);
@@ -820,6 +836,49 @@ async function carregarDono() {
   clearInterval(relogioDono);
   relogioDono = setInterval(() => { if (!document.hidden && $d("t-dono").classList.contains("ativa")) carregarDono(); }, 60000);
 }
+// Dono logado: dois ícones discretos no topo. "Cliente" mostra o aplicativo exatamente como o público vê; "Dono" traz a aba do painel.
+let modo = "dono"; try { modo = localStorage.getItem("fila-modo") || "dono"; } catch (x) {}
+function pintarModo() {
+  const logado = !!senhaDono, dono = logado && modo === "dono";
+  $d("trocar").hidden = !logado;
+  $d("nav-dono").hidden = !dono;
+  $d("ver-dono").setAttribute("aria-pressed", dono);
+  $d("ver-cliente").setAttribute("aria-pressed", logado && !dono);
+  $d("abrir-dono").hidden = logado;                 // quem já entrou usa os ícones do topo
+}
+function irPara(tela) {
+  document.querySelectorAll("nav button").forEach(x => x.setAttribute("aria-selected", x.dataset.tela === tela));
+  document.querySelectorAll(".tela").forEach(t => t.classList.toggle("ativa", t.id === tela));
+  window.scrollTo({ top: 0 });
+}
+$d("ver-cliente").addEventListener("click", () => { modo = "cliente"; try { localStorage.setItem("fila-modo", modo); } catch (x) {} pintarModo(); irPara("t-fila"); toque("Visão do cliente: é assim que o público vê."); });
+$d("ver-dono").addEventListener("click", () => { modo = "dono"; try { localStorage.setItem("fila-modo", modo); } catch (x) {} pintarModo(); irPara("t-dono"); carregarDono(); });
+$d("nav-dono").addEventListener("click", () => { if (senhaDono) carregarDono(); else prepararEntrada(); });
+pintarModo();
+
+// Puxar a tela para baixo atualiza o aplicativo (busca a versão mais nova no servidor).
+(() => {
+  const faixa = $d("puxar"); let y0 = null, puxado = 0;
+  const livre = () => window.scrollY <= 0 && $d("folha").hidden && $d("chamada").hidden;
+  addEventListener("touchstart", e => { y0 = livre() ? e.touches[0].clientY : null; puxado = 0; }, { passive: true });
+  addEventListener("touchmove", e => {
+    if (y0 == null) return;
+    puxado = Math.max(0, e.touches[0].clientY - y0);
+    if (!livre()) { y0 = null; faixa.style.height = "0"; return; }
+    faixa.classList.toggle("ativo", puxado > 20);
+    faixa.style.height = Math.min(64, puxado / 2.2) + "px";
+    faixa.textContent = puxado > 150 ? "Solte para atualizar" : "Puxe para atualizar";
+  }, { passive: true });
+  addEventListener("touchend", async () => {
+    if (y0 != null && puxado > 150) {
+      faixa.textContent = "Atualizando…"; faixa.style.height = "44px";
+      try { await fetch(location.pathname, { cache: "reload" }); } catch (x) {}
+      location.reload();
+      return;
+    }
+    faixa.style.height = "0"; faixa.classList.remove("ativo"); y0 = null; puxado = 0;
+  });
+})();
 if (conviteDono) abrirDono();
 
 buscar();
