@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#23288f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fila Agora">
 <title>Onda Azul · Fila Agora</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone-192.png" type="image/png">
@@ -133,11 +137,40 @@
   @media (prefers-reduced-motion: reduce) { .vivo .ponto, .tela.ativa { animation: none; } }
 
   /* instalar e alertas */
-  .instalar { display: flex; align-items: center; gap: 12px; background: var(--anil); color: #fff; border-radius: 18px; padding: 13px 14px; margin: 14px 0 0; }
-  .instalar svg { width: 34px; height: 34px; flex: none; animation: desce 1.4s ease-in-out infinite; }
+  .instalar { display: flex; align-items: center; gap: 12px; width: 100%; border: 0; text-align: left; font: inherit; cursor: pointer;
+    background: linear-gradient(120deg, #2f36b8, var(--anil)); color: #fff; border-radius: 20px; padding: 14px; margin: 14px 0 0;
+    box-shadow: 0 8px 22px rgba(35,40,143,0.28); }
+  .instalar[hidden] { display: none; }
+  .instalar .bola { width: 50px; height: 50px; flex: none; border-radius: 50%; background: var(--ceu); display: grid; place-items: center;
+    animation: pisca 1.3s ease-in-out infinite; }
+  .instalar .bola svg { width: 28px; height: 28px; animation: desce 1.3s ease-in-out infinite; }
+  @keyframes pisca { 0%, 100% { box-shadow: 0 0 0 0 rgba(56,182,234,0.85); } 60% { box-shadow: 0 0 0 14px rgba(56,182,234,0); } }
   @keyframes desce { 50% { transform: translateY(4px); } }
-  .instalar div { flex: 1; font-size: 0.8rem; font-weight: 600; line-height: 1.35; } .instalar b { display: block; font-size: 0.98rem; font-weight: 800; }
-  .instalar button { border: 0; border-radius: 12px; padding: 11px 16px; font: inherit; font-weight: 800; font-size: 0.88rem; color: var(--anil); background: #fff; cursor: pointer; }
+  .instalar .txt { flex: 1; min-width: 0; font-size: 0.78rem; font-weight: 600; line-height: 1.35; }
+  .instalar .txt b { display: block; font-size: 1.02rem; font-weight: 800; }
+  .instalar .pill { flex: none; border-radius: 12px; padding: 11px 14px; font-weight: 800; font-size: 0.86rem; color: var(--anil); background: #fff; }
+  .folha { position: fixed; inset: 0; z-index: 40; background: rgba(10,13,60,0.6); display: flex; align-items: flex-end; justify-content: center; }
+  .folha[hidden] { display: none; }
+  .folha .cx { position: relative; background: #fff; color: var(--texto); border-radius: 26px 26px 0 0; width: 100%; max-width: 520px;
+    padding: 20px 20px calc(24px + env(safe-area-inset-bottom)); animation: sobefolha 0.3s ease-out; max-height: 92dvh; overflow-y: auto; }
+  @keyframes sobefolha { from { transform: translateY(40px); opacity: 0; } }
+  .folha h2 { margin: 0 44px 4px 0; font-size: 1.25rem; }
+  .folha .sub2 { margin: 0 0 16px; color: var(--suave); font-size: 0.86rem; font-weight: 600; }
+  .folha .x { position: absolute; right: 14px; top: 12px; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--fundo);
+    font-size: 1.4rem; font-weight: 700; color: var(--suave); cursor: pointer; }
+  .passo { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 16px; background: var(--fundo); margin-bottom: 9px;
+    font-size: 0.92rem; font-weight: 600; line-height: 1.35; }
+  .passo i { flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--anil); color: #fff; font-style: normal; font-weight: 800;
+    display: grid; place-items: center; font-size: 0.9rem; }
+  .passo span { flex: 1; min-width: 0; }
+  .passo svg { flex: none; width: 30px; height: 30px; color: var(--anil); }
+  .passo b { font-weight: 800; }
+  .recado { border-radius: 14px; padding: 11px 13px; background: #fff4d6; color: #7a5200; font-size: 0.82rem; font-weight: 700; margin-bottom: 10px; line-height: 1.4; }
+  .recado[hidden], .passos[hidden], .seta-ios[hidden], #and-direto[hidden], #and-manual[hidden] { display: none; }
+  #and-direto { margin: 0 0 12px; font-size: 1.05rem; padding: 17px; animation: pisca 1.3s ease-in-out infinite; }
+  .seta-ios { text-align: center; color: var(--anil); font-weight: 800; font-size: 0.86rem; margin-top: 6px; }
+  .seta-ios svg { display: block; width: 34px; height: 34px; margin: 4px auto 0; animation: desce 1s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce) { .instalar .bola, .instalar .bola svg, #and-direto, .seta-ios svg { animation: none; } }
   .alertas { background: var(--branco); border: 1px solid var(--linha); border-radius: 22px; padding: 18px; margin-bottom: 14px; box-shadow: 0 6px 18px rgba(35,40,143,0.07); }
   .alertas h3 { margin: 0 0 4px; font-size: 1.02rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
   .alertas h3 svg { width: 22px; height: 22px; color: var(--ceu); }
@@ -176,11 +209,11 @@
 
   <main>
     <section class="tela ativa" id="t-fila">
-      <div class="instalar" id="instalar" hidden>
-        <svg viewBox="0 0 34 34" fill="none" stroke="#8fdcff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 5v17M9 15l8 8 8-8M6 29h22"/></svg>
-        <div><b>Instale o aplicativo</b>Fica na tela inicial e avisa quando tiver vaga.</div>
-        <button id="btn-instalar">Instalar</button>
-      </div>
+      <button class="instalar" id="instalar" hidden>
+        <span class="bola"><svg viewBox="0 0 28 28" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4v14M7 12l7 7 7-7M5 24h18"/></svg></span>
+        <span class="txt"><b>Instale o aplicativo</b>Fica na tela inicial e avisa quando tiver vaga.</span>
+        <span class="pill">Instalar</span>
+      </button>
       <div id="dica" class="dica" hidden></div>
       <div id="lista"><p class="aviso">Carregando…</p></div>
       <div class="alertas">
@@ -235,6 +268,29 @@
 </div></nav>
 <div class="aviso-toque" id="toque" role="status"></div>
 
+<div class="folha" id="folha" hidden>
+  <div class="cx" role="dialog" aria-labelledby="folha-titulo">
+    <button class="x" id="folha-fechar" aria-label="Fechar">×</button>
+    <h2 id="folha-titulo">Instalar o Fila Agora</h2>
+    <p class="sub2">Leva 10 segundos e não ocupa espaço.</p>
+    <div class="passos" id="passos-android">
+      <div class="recado" id="and-aviso" hidden>Você abriu por dentro de outro aplicativo. Toque nos três pontinhos e em <b>Abrir no Chrome</b> antes de instalar.</div>
+      <button class="botao" id="and-direto" hidden>Instalar agora</button>
+      <div id="and-manual">
+        <div class="passo"><i>1</i><span>Toque nos <b>três pontinhos</b>, no canto de cima do Chrome.</span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="12" cy="19" r="2.2"/></svg></div>
+        <div class="passo"><i>2</i><span>Escolha <b>Adicionar à tela inicial</b> ou <b>Instalar aplicativo</b>.</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="2.5" width="14" height="19" rx="3"/><path d="M12 8v7M8.5 11.5h7"/></svg></div>
+        <div class="passo"><i>3</i><span>Confirme em <b>Instalar</b>. O ícone aparece junto dos outros aplicativos.</span></div>
+      </div>
+    </div>
+    <div class="passos" id="passos-ios" hidden>
+      <div class="recado" id="ios-aviso" hidden>No iPhone a instalação é pelo <b>Safari</b>. Abra este endereço no Safari e siga os passos.</div>
+      <div class="passo"><i>1</i><span>Toque em <b>Compartilhar</b>, na barra do Safari.</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M8 6.5l4-4 4 4M7 10H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-1"/></svg></div>
+      <div class="passo"><i>2</i><span>Role a lista e toque em <b>Adicionar à Tela de Início</b>.</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8v8M8 12h8"/></svg></div>
+      <div class="passo"><i>3</i><span>Toque em <b>Adicionar</b>, no canto de cima. Pronto.</span></div>
+      <div class="seta-ios" id="seta-ios" hidden>O botão Compartilhar fica aqui embaixo<svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 5v22M8 19l9 9 9-9"/></svg></div>
+    </div>
+  </div>
+</div>
 <div class="alarme" id="chamada" role="alertdialog" aria-labelledby="ch-titulo" hidden>
   <svg viewBox="0 0 62 36" aria-hidden="true"><path d="M3 26v-6c0-2 1-3 3-3l6-1 6-8c1-2 2-2 4-2h17c2 0 3 0 4 2l7 8 6 1c2 0 3 1 3 3v6c0 1-1 2-2 2H5c-1 0-2-1-2-2z" fill="#38b6ea" stroke="#fff" stroke-width="1.6"/><path d="M22 8h8v8H16zM33 8h7l6 8H33z" fill="#d9f1fc"/><circle cx="16" cy="28" r="6" fill="#fff"/><circle cx="46" cy="28" r="6" fill="#fff"/></svg>
   <h2 id="ch-titulo"></h2><p id="ch-corpo"></p><button id="ch-ok">Ok, estou indo</button>
@@ -423,15 +479,42 @@ document.querySelectorAll("[data-demo]").forEach(b => b.addEventListener("click"
 
 // ---- instalar o aplicativo ----
 let convite = null;
-const cartaoInstalar = document.getElementById("instalar");
+const cartaoInstalar = document.getElementById("instalar"), folha = document.getElementById("folha");
 const jaInstalado = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
-window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); convite = e; if (!jaInstalado()) cartaoInstalar.hidden = false; });
-window.addEventListener("appinstalled", () => { cartaoInstalar.hidden = true; convite = null; });
-document.getElementById("btn-instalar").addEventListener("click", async () => {
-  if (!convite) { toque("No Chrome: toque nos três pontinhos e em Adicionar à tela inicial. No iPhone: Compartilhar e Adicionar à Tela de Início."); return; }
-  convite.prompt(); await convite.userChoice; convite = null; cartaoInstalar.hidden = true;
-});
-if (!jaInstalado() && /iphone|ipad/i.test(navigator.userAgent)) cartaoInstalar.hidden = false;
+const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const ehSafari = ehIOS && !/crios|fxios|edgios|gsa\//i.test(navigator.userAgent);
+const dentroDeOutroApp = /; wv\)|fban|fbav|instagram|whatsapp/i.test(navigator.userAgent);
+
+function abrirFolha() {
+  document.getElementById("passos-ios").hidden = !ehIOS;
+  document.getElementById("passos-android").hidden = ehIOS;
+  document.getElementById("ios-aviso").hidden = ehSafari;
+  document.getElementById("seta-ios").hidden = !(ehSafari && /iphone|ipod/i.test(navigator.userAgent));
+  document.getElementById("and-direto").hidden = !convite;
+  document.getElementById("and-manual").hidden = !!convite;
+  document.getElementById("and-aviso").hidden = !dentroDeOutroApp;
+  folha.hidden = false;
+}
+async function instalar() {
+  if (convite) {
+    convite.prompt();
+    const r = await convite.userChoice;
+    convite = null;
+    if (r.outcome === "accepted") { cartaoInstalar.hidden = true; folha.hidden = true; return; }
+  }
+  abrirFolha();
+}
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); convite = e; if (!folha.hidden) abrirFolha(); });
+window.addEventListener("appinstalled", () => { cartaoInstalar.hidden = true; folha.hidden = true; convite = null; });
+cartaoInstalar.addEventListener("click", instalar);
+document.getElementById("and-direto").addEventListener("click", instalar);
+document.getElementById("folha-fechar").addEventListener("click", () => { folha.hidden = true; });
+folha.addEventListener("click", e => { if (e.target === folha) folha.hidden = true; });
+if (!jaInstalado()) {
+  cartaoInstalar.hidden = false;
+  // quem chega pelo link de instalação já vê o passo a passo (espera um instante o convite do Android)
+  if (new URLSearchParams(location.search).has("instalar")) setTimeout(abrirFolha, 1200);
+}
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 
 function toque(texto) {
