@@ -506,13 +506,13 @@ function desenhar() {
     const sit = simulando ? { aberta: true, expediente: "" } : situacao(horarios[u.unidade]);
     return { ...u, nome, ender, idade, fechada: !sit.aberta, aviso: sit.texto, expediente: sit.expediente, vivo: sit.aberta && idade <= VELHO && u.veiculos != null };
   });
-  const assinatura = JSON.stringify(itens.map(u => [u.unidade, u.vivo, u.veiculos, u.fila, u.permanencia_media_s, u.paradas_hoje, u.fechada, u.aviso, u.expediente]));
+  const assinatura = JSON.stringify(itens.map(u => [u.unidade, u.vivo, u.veiculos, u.fila, u.permanencia_media_s, Math.round((u.espera_s || 0) / 60), u.paradas_hoje, u.fechada, u.aviso, u.expediente]));
   if (assinatura !== ultimaAssinatura) {
     ultimaAssinatura = assinatura;
     lista.innerHTML = itens.map(u => {
       const [rotulo, cor] = u.fechada ? ["Fechada", "var(--parado)"] : u.vivo ? nivel(u.veiculos) : ["Sem leitura", "var(--parado)"];
       const lavando = u.vivo && u.veiculos > 0 ? 1 : 0, aguardando = u.vivo ? Math.max(0, u.veiculos - 1) : 0;
-      const espera = !u.vivo ? "—" : u.veiculos === 0 ? "sem espera" : u.permanencia_media_s != null ? minutos(u.veiculos * u.permanencia_media_s) : "—";
+      const espera = !u.vivo ? "—" : u.veiculos === 0 ? "sem espera" : u.espera_s != null ? minutos(u.espera_s) : u.permanencia_media_s != null ? minutos(u.veiculos * u.permanencia_media_s) : "—";
       const pista = montarPista(u, filasAntes[u.unidade] ?? 99);
       filasAntes[u.unidade] = u.vivo ? (u.veiculos || 0) : 0;
       return `<article class="cartao ${u.vivo ? "vivo" : ""}" style="--cor:${cor}">
@@ -540,7 +540,7 @@ function desenhar() {
   if (ih && exp.length) ih.textContent = exp.length === 1 ? "Todos os dias, das " + exp[0] + "." : itens.filter(u => u.expediente).map(u => u.nome + ": das " + u.expediente).join(". ") + ".";
   itens.forEach(u => {
     const el = lista.querySelector(`[data-quando="${u.unidade}"]`);
-    if (el) el.textContent = (simulando ? "Simulação" : u.fechada ? "Fora do horário de atendimento" : u.atualizado_em ? "Atualizado " + faz(u.idade) : "Aguardando a primeira leitura")
+    if (el) el.textContent = (simulando ? "Simulação" : u.fechada ? "Fora do horário de atendimento" : u.atualizado_em ? "Atualizado às " + new Date(u.atualizado_em).toLocaleTimeString("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit" }) : "Aguardando a primeira leitura")
 ;
   });
 }
@@ -804,7 +804,7 @@ if (navigator.serviceWorker) navigator.serviceWorker.addEventListener("message",
   if (e.data && e.data.tipo === "fila-aviso") mostrarChamada(e.data.titulo, e.data.corpo);
 });
 if (nativo) { try { pref.ligado = !!JSON.parse(nativo.estado()).ligado; guardar(); } catch (x) {} }
-const VERSAO_WEB = "2.0";
+const VERSAO_WEB = "2.1";
 (() => {
   let app = ""; try { if (nativo && nativo.versao) app = nativo.versao(); } catch (x) {}
   document.getElementById("versao").textContent = "Fila Agora · " + (nativo ? "aplicativo Android " + (app || "1.2 ou anterior") + " · " : "") + "tela " + VERSAO_WEB;
@@ -981,7 +981,7 @@ pintarModo();
 if (conviteDono) abrirDono();
 
 buscar();
-setInterval(buscar, 10000);
+setInterval(buscar, 5000);
 setInterval(desenhar, 1000);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) buscar(); });
 </script>
